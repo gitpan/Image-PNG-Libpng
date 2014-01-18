@@ -1,0 +1,147 @@
+use strict;
+use warnings;
+use ExtUtils::MakeMaker;
+use ExtUtils::Constant;
+
+use 5.008001;
+
+use lib 'inc';
+
+use Devel::CheckLib;
+
+check_lib_or_exit (lib => 'png', header => 'png.h');
+
+my $verbose ;
+
+WriteMakefile (
+    NAME         => 'Image::PNG::Libpng',
+    VERSION      => '0.21',
+    ABSTRACT     => 'Perl interface to libpng',
+    OBJECT       => 'Libpng.o perl-libpng.o',
+    LIBS         => '-lpng',
+#    INC          => $inc,
+    AUTHOR => 'Ben Bullock <bkb@cpan.org>',
+    LICENSE => 'perl',
+    META_MERGE => {
+        resources => {
+            "MailingList" => "http://groups.google.com/group/perlimagepng",
+            "bugtracker" => "https://github.com/benkasminbullock/image-png-libpng/issues",
+            "repository" => "https://github.com/benkasminbullock/image-png-libpng",
+        },
+        no_index => {
+            directory => ['tmpl', 'build'],
+        },
+    },
+    MIN_PERL_VERSION => '5.008001',
+);
+
+my @names = (qw());
+
+ExtUtils::Constant::WriteConstants(
+    NAME         => 'Image::PNG::Libpng::Libpng',
+    NAMES        => \@names,
+    DEFAULT_TYPE => 'IV',
+    C_FILE       => 'const-c.inc',
+    XS_FILE      => 'const-xs.inc',
+);
+
+if ($verbose) {
+    print "I have successfully completed my job.\n";
+}
+
+# The following subroutine adds extra necessary rules to the end of
+# "Makefile". See
+# http://search.cpan.org/dist/ExtUtils-MakeMaker/lib/ExtUtils/MakeMaker.pm#Overriding_MakeMaker_Methods
+
+sub MY::postamble
+{
+    if ($verbose) {
+        print <<EOF;
+A utility called "cfunctions" is used in the building of the source
+code.  You don't need this unless you have edited the source code of
+the file called "perl-libpng.c" to change the C function definitions
+so that new prototypes need to be made for them.
+
+EOF
+    }
+    my $cfunctions_build;
+
+    $cfunctions_build .= <<EOF;
+Libpng.o: perl-libpng.h
+
+perl-libpng.o: perl-libpng.h my-xs.h
+EOF
+    my $has_cfunctions = find_program ('cfunctions', $verbose);
+
+    if ($has_cfunctions) {
+        $cfunctions_build .= <<EOF;
+perl-libpng.h:  perl-libpng.c
+	cfunctions -i -n -c perl-libpng.c
+
+my-xs.h:        my-xs.c
+	cfunctions -i -n -c my-xs.c
+
+EOF
+    }
+    else {
+        if ($verbose) {
+            print "You don't have 'cfunctions'. Never mind!\n";
+        }
+    }
+    if ( -d ".git") {
+	$cfunctions_build .= <<EOF;
+
+lib/Image/PNG/Libpng.pm:	tmpl/Libpng.pm.tmpl build/make-files.pl
+	build/make-files.pl
+
+lib/Image/PNG/Libpng/Libpng.pm:	tmpl/Libpng.pm.tmpl build/make-files.pl tmpl/Libpng.xs.tmpl
+	build/make-files.pl
+
+Libpng.xs:   tmpl/Libpng.xs.tmpl tmpl/config build/make-files.pl
+	build/make-files.pl
+
+lib/Image/PNG/Libpng/Const.pm:      tmpl/Const.pm.tmpl build/strip-constants.pl
+	build/strip-constants.pl
+EOF
+
+    }   
+    return $cfunctions_build;
+}
+
+sub find_program
+{
+    my ($program, $verbose) = @_;
+    if ($verbose) {
+        print "I am going to look for $program in the list of directories in your PATH.\n";
+    }
+    my $found;
+    if ($ENV{PATH}) {
+        my @path = split /:/, $ENV{PATH};
+        for my $dir (@path) {
+            if ($verbose) {
+                print "Looking in '$dir' for '$program': ";
+            }
+            my $dprogram = "$dir/$program";
+            if (-f $dprogram && -x $dprogram) {
+                if ($verbose) {
+                    print "Found.\n";
+                }
+                $found = $dprogram;
+                last;
+            }
+            if ($verbose) {
+                print "Not found.\n";
+            }
+        }
+    }
+    else {
+        if ($verbose) {
+            print "There is no PATH environment variable.\n";
+        }
+    }
+    return $found;
+}
+
+# Local Variables:
+# mode: perl
+# End:

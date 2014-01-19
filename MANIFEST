@@ -2,9 +2,9 @@ Changes
 const-c.inc
 const-xs.inc
 inc/Devel/CheckLib.pm
+lib/Image/PNG/Const.pm
 lib/Image/PNG/Libpng.pm
 lib/Image/PNG/Libpng.pod
-lib/Image/PNG/Libpng/Const.pm
 Libpng.xs
 Makefile.PL
 MANIFEST			This list of files

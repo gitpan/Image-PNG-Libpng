@@ -15,7 +15,7 @@ my $verbose ;
 
 WriteMakefile (
     NAME         => 'Image::PNG::Libpng',
-    VERSION      => '0.21',
+    VERSION      => '0.22',
     ABSTRACT     => 'Perl interface to libpng',
     OBJECT       => 'Libpng.o perl-libpng.o',
     LIBS         => '-lpng',
@@ -38,7 +38,7 @@ WriteMakefile (
 my @names = (qw());
 
 ExtUtils::Constant::WriteConstants(
-    NAME         => 'Image::PNG::Libpng::Libpng',
+    NAME         => 'Image::PNG::Libpng',
     NAMES        => \@names,
     DEFAULT_TYPE => 'IV',
     C_FILE       => 'const-c.inc',

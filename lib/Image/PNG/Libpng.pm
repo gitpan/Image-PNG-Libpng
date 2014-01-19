@@ -87,7 +87,7 @@ read_file
 );
 
 require XSLoader;
-our $VERSION = '0.21';
+our $VERSION = '0.22';
 
 XSLoader::load('Image::PNG::Libpng', $VERSION);
 

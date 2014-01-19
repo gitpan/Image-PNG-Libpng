@@ -23,9 +23,12 @@ Image::PNG::Libpng - Perl interface to the C library "libpng".
      $png->read_png ();
      close $file;
 
+=head1 DESCRIPTION
+
 Image::PNG::Libpng enables Perl to use the "libpng" library for
 reading and writing files in the PNG (Portable Network Graphics)
-format.
+format. Image::PNG::Libpng does not contain "libpng". "libpng" must be
+installed on the computer prior to installing Image::PNG::Libpng.
 
 Image::PNG::Libpng consists of Perl subroutines which mirror
 the C functions in libpng, plus helper subroutines to make it easier
@@ -33,15 +36,23 @@ to read and write PNG data in Perl.
 
 For those familiar with libpng, to know what the differences between
 this module and libpng are, please go to the section L</Differences
-from libpng>.
+from libpng>. For those not familiar with libpng, the module basically
+mirrors the C interface of libpng. An extension of this module,
+L<Image::PNG>, is intended to give a more intuitive interface to the
+library.
 
 =head1 FUNCTIONS
+
+Most of these functions can also be used as methods, with the return
+value of L</create_read_struct> and L</create_write_struct> as
+arguments.
 
 =head2 create_read_struct
 
      my $png = create_read_struct ();
 
-Create a structure for reading a PNG.
+Create a structure for reading a PNG. This can be used as an object
+with the other functions as methods.
 
 =head3 Correspondence to libpng
 
@@ -52,7 +63,8 @@ Perl's error reporting.
 
      my $png = create_write_struct ();
 
-Create a structure for writing a PNG.
+Create a structure for writing a PNG. This can be used as an object
+with the other functions as methods.
 
 =head3 Correspondence to libpng
 
@@ -114,7 +126,7 @@ a routine which reads data from Perl scalars. It then uses
 C<png_read_png> to read all the data.
 
 The C function which does this is called C<perl_png_scalar_read>, 
-L<in the file C<perl-libpng.c> in the top directory of the distribution|http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.21/perl-libpng.c>.
+L<in the file C<perl-libpng.c> in the top directory of the distribution|http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.22/perl-libpng.c>.
 
 See also L</Input/output manipulation functions>.
 
@@ -144,7 +156,7 @@ uses C<png_set_write_fn> to set the writing function of C<$png> to be
 its own function, which writes data to the Perl scalar.
 
 The C function which does this is called C<perl_png_scalar_write>, 
-L<in the file C<perl-libpng.c> in the top directory of the distribution|http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.21/perl-libpng.c>.
+L<in the file C<perl-libpng.c> in the top directory of the distribution|http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.22/perl-libpng.c>.
 
 See also L</Input/output manipulation functions>.
 
@@ -155,7 +167,7 @@ See also L</Input/output manipulation functions>.
 Read the entire PNG file into memory. You can provide an argument
 containing transformations to apply to the image:
 
-     use Image::PNG::Libpng::Const qw/PNG_TRANSFORM_STRIP_ALPHA/;
+     use Image::PNG::Const qw/PNG_TRANSFORM_STRIP_ALPHA/;
      $png->read_png (PNG_TRANSFORM_STRIP_ALPHA);
 
 In the absence of any third argument, the default value of
@@ -237,7 +249,7 @@ using L</init_io>. For example,
 An optional argument consists of transformations to apply to the PNG
 image before writing it:
 
-    use Image::PNG::Libpng::Const qw/PNG_TRANSFORM_STRIP_ALPHA/;
+    use Image::PNG::Const qw/PNG_TRANSFORM_STRIP_ALPHA/;
     $png->write_png (PNG_TRANSFORM_STRIP_ALPHA);
 
 The transformations which can be applied are as follows:
@@ -603,7 +615,7 @@ This function corresponds to C<png_set_text>.
 
 =head2 set_keep_unknown_chunks
 
-    use Image::PNG::Libpng::Const 'PNG_HANDLE_CHUNK_ALWAYS';
+    use Image::PNG::Const 'PNG_HANDLE_CHUNK_ALWAYS';
     $png->set_keep_unknown_chunks (PNG_HANDLE_CHUNK_ALWAYS);
 
 Tell libpng not to discard unknown chunks when reading the file.
@@ -761,7 +773,7 @@ undefined value.
 A PNG image may or may not contain a palette. To check whether the
 image contains a palette, use something of the following form:
 
-     use Image::PNG::Libpng::Const ':all';
+     use Image::PNG::Const ':all';
      my $color_type = $png->get_color_type ();
      if ($color_type == PNG_COLOR_TYPE_PALETTE) {
          # The PNG uses a palette.
@@ -848,7 +860,7 @@ This function corresponds to C<png_get_rowbytes>.
 
 =head2 set_filter
 
-    use Image::PNG::Libpng::Const 'PNG_FILTER_NONE';
+    use Image::PNG::Const 'PNG_FILTER_NONE';
     $png->set_filter (PNG_FILTER_NONE);
 
 This sets the filters which are allowed to be used for writing a PNG
@@ -874,7 +886,7 @@ image. The possible values are
 
 These can be combined using C<|> (logical or):
 
-    use Image::PNG::Libpng::Const ':all';
+    use Image::PNG::Const ':all';
     set_filter ($png, PNG_FILTER_UP | PNG_FILTER_AVG);
 
 Please see L<http://www.w3.org/TR/PNG/#9Filter-types> for the meanings of these
@@ -1035,7 +1047,7 @@ instances of unevaluated arguments, which have all been eliminated
 from this module.
 
 If you are interested in exactly which libpng arguments are omitted,
-you can find each instance L<in the file C<perl-libpng.c> in the top directory of the distribution|http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.21/perl-libpng.c> in the macro
+you can find each instance L<in the file C<perl-libpng.c> in the top directory of the distribution|http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.22/perl-libpng.c> in the macro
 C<UNUSED_ZERO_ARG>.
 
 =head2 Function return values are used to return values
@@ -1451,12 +1463,6 @@ discussions.
 =head2 Reporting a bug
 
 There is a bug tracker at L<https://github.com/benkasminbullock/image-png-libpng/issues>.
-
-=head1 FOR PROGRAMMERS
-
-The distributed files are not the source code of the module. The
-source code lives in the "tmpl" directory of the distribution and the
-distribution is created via scripts.
 
 
 

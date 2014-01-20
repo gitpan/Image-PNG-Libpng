@@ -1,15 +1,5 @@
-/* This is a Cfunctions (version 0.28) generated header file.
-   Cfunctions is a free program for extracting headers from C files.
-   Get Cfunctions from 'http://www.lemoda.net/cfunctions/'. */
+/* Fetch a value "field" from a hash. */
 
-/* This file was generated with:
-'cfunctions -i -n -c my-xs.c' */
-#ifndef CFH_MY_XS_H
-#define CFH_MY_XS_H
-
-/* From 'my-xs.c': */
-
-#line 1 "my-xs.c"
 #define HASH_FETCH(hash,field)     {                            \
     SV ** field_sv_ptr = hv_fetch (hash, #field,                \
                                    strlen (#field), 0);         \
@@ -17,14 +7,18 @@
         fprintf (stderr, "Field '%s' in '%s' not valid.\n",     \
                  #field, #hash);                                \
     }                                                           \
-    field_sv = * field_sv_ptr;                                  \
-    }                                                           \
+    field_sv = * field_sv_ptr;					\
+    }								\
 
 #define HASH_FETCH_IV(hash,field) {                             \
         SV * field_sv;                                          \
         HASH_FETCH (hash, field);                               \
         field = SvIV (field_sv);                                \
     }
+
+/* If "hash" does not contain "field", do not complain but just skip
+   that field. */
+
 #define HASH_FETCH_IV_MEMBER(hash,field,str) {                  \
         SV ** field_sv_ptr = hv_fetch (hash, #field,            \
                                        strlen (#field), 0);     \
@@ -34,14 +28,55 @@
             str->field = SvIV (field_sv);                       \
         }                                                       \
     }
+
 #define HASH_FETCH_PV(hash,field) {                             \
         SV * field_sv;                                          \
         HASH_FETCH (hash, field);                               \
         field = SvPV (field_sv, field ## _length);              \
     }
+
+#define HASH_FETCH_AV(hash,field) {			\
+	SV * field_sv;					\
+	HASH_FETCH (hash, field);			\
+	if (SvROK (params) &&				\
+	    SvTYPE (SvRV (params)) == SVt_PVAV) {	\
+	    field = (AV *) SvRV (params);		\
+	}						\
+	else {						\
+	    field = 0;					\
+	}						\
+    }
+
 #define HASH_STORE_IV(hash,field)                                       \
     (void) hv_store (hash, #field, strlen (#field), newSViv (field), 0)
+
+#define HASH_STORE_PV(hash,field)                                       \
+    (void) hv_store (hash, #field, strlen (#field),			\
+		     newSVpv (field, strlen (field)), 0)
+
+#define HASH_STORE_AV(hash,field)                                       \
+    (void) hv_store (hash, #field, strlen (#field), SvRV (field), 0)
+
 #define HASH_STORE_IV_MEMBER(hash,field,str)                            \
     (void) hv_store (hash, #field, strlen (#field), newSViv (str.field), 0)
 
-#endif /* CFH_MY_XS_H */
+#define ARRAY_FETCH_PV(array,n,value,length)	\
+    {						\
+	SV * sv;				\
+	sv = * av_fetch (array, n, 0);		\
+	value = SvPV (sv, length);		\
+    }
+
+#define ARRAY_FETCH_IV(array,n,value)		\
+    {						\
+	SV * sv;				\
+	sv = * av_fetch (array, n, 0);		\
+	value = SvIV (sv);			\
+    }
+
+#define ARRAY_STORE_PV(array,value)		\
+    {						\
+	SV * sv;				\
+	sv = newSVpv (value, strlen (value));	\
+	av_push (array, sv);			\
+    }

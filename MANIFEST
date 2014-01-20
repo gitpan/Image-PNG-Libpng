@@ -1,6 +1,10 @@
 Changes
 const-c.inc
 const-xs.inc
+examples/color-type-name.pl
+examples/get-www-png.pl
+examples/png-cgi.pl
+examples/set-unknown-chunk.pl
 inc/Devel/CheckLib.pm
 lib/Image/PNG/Const.pm
 lib/Image/PNG/Libpng.pm
@@ -9,10 +13,8 @@ Libpng.xs
 Makefile.PL
 MANIFEST			This list of files
 MANIFEST.SKIP
-my-xs.c
 my-xs.h
 perl-libpng.c
-perl-libpng.h
 README
 script/pnginspect
 t/bgyn6a16.png
@@ -23,6 +25,8 @@ t/ccwn3p08.png
 t/cdun2c08.png
 t/cHRM.t
 t/Const.t
+t/g03n2c08.png
+t/gAMA.t
 t/Libpng.t
 t/pHYs.t
 t/PLTE.t

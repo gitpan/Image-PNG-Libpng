@@ -15,9 +15,9 @@ my $verbose ;
 
 WriteMakefile (
     NAME         => 'Image::PNG::Libpng',
-    VERSION      => '0.22',
+    VERSION      => '0.23',
     ABSTRACT     => 'Perl interface to libpng',
-    OBJECT       => 'Libpng.o perl-libpng.o',
+    OBJECT       => 'Libpng.o',
     LIBS         => '-lpng',
 #    INC          => $inc,
     AUTHOR => 'Ben Bullock <bkb@cpan.org>',
@@ -33,6 +33,7 @@ WriteMakefile (
         },
     },
     MIN_PERL_VERSION => '5.008001',
+    EXE_FILES => ['script/pnginspect',],
 );
 
 my @names = (qw());
@@ -55,39 +56,8 @@ if ($verbose) {
 
 sub MY::postamble
 {
-    if ($verbose) {
-        print <<EOF;
-A utility called "cfunctions" is used in the building of the source
-code.  You don't need this unless you have edited the source code of
-the file called "perl-libpng.c" to change the C function definitions
-so that new prototypes need to be made for them.
+    my $cfunctions_build = '';
 
-EOF
-    }
-    my $cfunctions_build;
-
-    $cfunctions_build .= <<EOF;
-Libpng.o: perl-libpng.h
-
-perl-libpng.o: perl-libpng.h my-xs.h
-EOF
-    my $has_cfunctions = find_program ('cfunctions', $verbose);
-
-    if ($has_cfunctions) {
-        $cfunctions_build .= <<EOF;
-perl-libpng.h:  perl-libpng.c
-	cfunctions -i -n -c perl-libpng.c
-
-my-xs.h:        my-xs.c
-	cfunctions -i -n -c my-xs.c
-
-EOF
-    }
-    else {
-        if ($verbose) {
-            print "You don't have 'cfunctions'. Never mind!\n";
-        }
-    }
     if ( -d ".git") {
 	$cfunctions_build .= <<EOF;
 

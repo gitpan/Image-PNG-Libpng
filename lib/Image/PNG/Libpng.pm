@@ -79,7 +79,9 @@ use Carp;
 	set_tIME
 	get_tRNS
 	set_tRNS
-read_file
+read_png_file
+write_png_file
+color_type_name
 /;
 
 %EXPORT_TAGS = (
@@ -87,25 +89,41 @@ read_file
 );
 
 require XSLoader;
-our $VERSION = '0.22';
+our $VERSION = '0.23';
 
 XSLoader::load('Image::PNG::Libpng', $VERSION);
 
+# Old undocumented function name
+
 sub read_file
+{
+    goto & read_png_file;
+}
+
+# Old undocumented function name
+
+sub write_file
+{
+    goto & write_png_file;
+}
+
+sub read_png_file
 {
     my ($file_name) = @_;
     my $png = create_read_struct ();
-    open my $in, "<:raw", $file_name or croak $!;
+    open my $in, "<:raw", $file_name
+        or croak "Cannot open '$file_name' for reading: $!";
     $png->init_io ($in);
     $png->read_png ();
     close $in or croak $!;
     return $png;
 }
 
-sub write_file
+sub write_png_file
 {
     my ($png, $file_name) = @_;
-    open my $in, ">:raw", $file_name or croak $!;
+    open my $in, ">:raw", $file_name
+        or croak "Cannot open '$file_name' for writing: $!";
     $png->init_io ($in);
     $png->write_png ();
     close $in or croak $!;

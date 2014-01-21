@@ -38,7 +38,7 @@ use Carp;
 	set_verbosity
 	set_unknown_chunks
 	get_unknown_chunks
-	supports
+	libpng_supports
 	set_keep_unknown_chunks
 	get_tRNS_palette
 	set_PLTE_pointer
@@ -94,7 +94,7 @@ get_internals
 );
 
 require XSLoader;
-our $VERSION = '0.26';
+our $VERSION = '0.27';
 
 XSLoader::load('Image::PNG::Libpng', $VERSION);
 

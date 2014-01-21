@@ -1516,9 +1516,9 @@ Not implemented.
 
 These functions enable examination of the installed libpng from Perl.
 
-=head2 supports
+=head2 libpng_supports
 
-    if (supports ('iTXt')) {
+    if (libpng_supports ('iTXt')) {
         print "Your libpng supports international text.\n";
     }
 
@@ -1526,13 +1526,21 @@ This function returns true or false depending on whether the version
 of libpng which this was compiled with supports or does not support a
 particular facility.
 
-The possible arguments to C<supports> are
+The possible arguments to C<libpng_supports> are
 
 =over
 
 =item iTXt
 
 Does the libpng support international text?
+
+=item tEXt
+
+Does the libpng support text?
+
+=item zTXt
+
+Does the libpng support compressed text?
 
 =back
 
@@ -1632,7 +1640,7 @@ instances of unevaluated arguments, which have all been eliminated
 from this module.
 
 If you are interested in exactly which libpng arguments are omitted,
-you can find each instance L<in the file C<perl-libpng.c> in the top directory of the distribution|http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.26/perl-libpng.c> in the macro
+you can find each instance L<in the file C<perl-libpng.c> in the top directory of the distribution|http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.27/perl-libpng.c> in the macro
 C<UNUSED_ZERO_ARG>.
 
 =head2 Function return values are used to return values

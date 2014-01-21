@@ -17,6 +17,7 @@ my-xs.h
 perl-libpng.c
 README
 script/pnginspect
+supports.pl
 t/bKGD-test.png
 t/bKGD.t
 t/cHRM.t
@@ -208,7 +209,7 @@ t/PLTE.t
 t/saru-fs8.png
 t/tantei-san.png
 t/test.png
-t/tEXT.t
+t/text.t
 t/tIME.t
 t/tRNS.t
 typemap

@@ -207,15 +207,17 @@ file handle substituting for the C C<FILE *>.
 
      $png->read_png ();
 
-Read the entire PNG file into memory. You can provide an argument
-containing transformations to apply to the image:
+Read the entire PNG file into memory. 
+
+You can provide an argument containing transformations to apply to the
+image:
 
      use Image::PNG::Const qw/PNG_TRANSFORM_STRIP_ALPHA/;
      $png->read_png (PNG_TRANSFORM_STRIP_ALPHA);
 
-In the absence of any third argument, the default value of
-C<PNG_TRANSFORM_IDENTITY> is applied. The possible transformations
-which can be applied are
+If the argument is omitted, the default value of
+C<PNG_TRANSFORM_IDENTITY> (the "do nothing" value) is applied. The
+possible transformations which can be applied are
 
 =over
 
@@ -376,9 +378,10 @@ the image header.
 
 This subroutine looks at C<$should_be_png> and checks whether its
 first bytes correspond to a valid PNG signature. It returns a true
-value if they do not. It can also take two further arguments
-consisting of a byte offset and a number of bytes to check
-respectively:
+value if they do not. 
+
+It can also take two further arguments consisting of a byte offset and
+a number of bytes to check respectively:
 
     sig_cmp ($should_be_png, 0, 8);
 
@@ -686,17 +689,17 @@ time stamp information.
         warn "Your PNG is now getting old. Don't forget to oil it to prevent rust.";
     }
 
-This subroutine gets the modification time value of the PNG image and
-puts it into fields labelled "year", "month", "day", "hour", "minute"
-and "second" of the hash reference given as the third argument. If
-there is no modification time in the file, it returns an undefined
-value.
+The return value is either the undefined value, if no tIME chunk
+exists in the PNG, or a hash reference containing fields "year",
+"month", "day", "hour", "minute" and "second".
 
 The "modification time value" of the PNG image is a chunk written into
 the PNG file itself, and may not have the same value as the operating
 system's modification time for the file. The tIME chunk is not a
 compulsory requirement for PNG files, and most PNG image files do not
-contain this chunk.
+contain this chunk. PNG tIME chunks do not contain a time
+zone. "Universal Time (UTC) should be specified rather than local
+time."
 
 
 
@@ -712,10 +715,13 @@ substituted for the C struct C<png_timep> used in libpng.
     # Set the time
     $png->set_tIME ({year => 1999, month => 12});
 
-Set the modification time of the PNG to the hash value given by the
-argument. If the argument is omitted, the time is set to the current
-time. If any of year, month, day, hour, minute or second is omitted,
-these are set to zero.
+Set the modification time of the PNG to the values given by the
+argument, a hash reference containing the fields C<year>, C<month>,
+C<day>, C<hour>, C<minute>, and C<second>. If the argument is omitted,
+the time is set to the current time. If any of year, month, day, hour,
+minute or second is omitted, these are set to zero. PNG tIME chunks do
+not contain a time zone. "Universal Time (UTC) should be specified
+rather than local time."
 
 
 
@@ -1530,6 +1536,10 @@ Does the libpng support international text?
 
 =back
 
+=head1 ACCESS FUNCTIONS
+
+These functions are used to access parts of the C<$png> object itself.
+
 =head2 get_internals
 
     my ($png_struct, $png_info) = get_internals ($png);
@@ -1569,15 +1579,25 @@ is set here.
 
     $png->set_row_pointers ($row_pointers);
 
-C<$row_pointers> should be set up something like the following:
+This is a routine which allows an XS module communicating with
+Image::PNG::Libpng to directly set the value of the row pointers for
+the PNG image. This is then freed by Image::PNG::Libpng using Perl's
+Safefree when C<$png> is destroyed. Because the freeing uses
+C<Safefree>, it's better to use Newx to allocate the memory rather
+than malloc.
+
+The Perl scalar C<$row_pointers> should be set up something like the
+following (where C<rp> is the C pointer):
 
     RETVAL = newSV (0);
-    xv_setref_pv (RETVAL, "Image::PNG::Libpng::row_pointers", row_pointers);
+    xv_setref_pv (RETVAL, "Image::PNG::Libpng::row_pointers", rp);
 
-It's extracted using
+It's extracted from the Perl scalar using
 
-    
+    rp = INT2PTR (png_byte **, (SV *) SvRV (row_pointers));
 
+where row_pointers is the C<SV *> corresponding to C<$row_pointers> in
+the Perl script.
 
 =head1 EXPORTS
 
@@ -1612,7 +1632,7 @@ instances of unevaluated arguments, which have all been eliminated
 from this module.
 
 If you are interested in exactly which libpng arguments are omitted,
-you can find each instance L<in the file C<perl-libpng.c> in the top directory of the distribution|http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.25/perl-libpng.c> in the macro
+you can find each instance L<in the file C<perl-libpng.c> in the top directory of the distribution|http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.26/perl-libpng.c> in the macro
 C<UNUSED_ZERO_ARG>.
 
 =head2 Function return values are used to return values

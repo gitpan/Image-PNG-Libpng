@@ -23,6 +23,7 @@ t/cHRM.t
 t/Const.t
 t/gAMA.t
 t/get-internals.t
+t/hIST.t
 t/Libpng.t
 t/libpng/basi0g01.png
 t/libpng/basi0g02.png

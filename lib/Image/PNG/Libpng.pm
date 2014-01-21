@@ -94,7 +94,7 @@ get_internals
 );
 
 require XSLoader;
-our $VERSION = '0.25';
+our $VERSION = '0.26';
 
 XSLoader::load('Image::PNG::Libpng', $VERSION);
 
@@ -133,6 +133,72 @@ sub write_png_file
     $png->write_png ();
     close $in or croak $!;
 }
+
+my %known_chunks = (
+
+bKGD => 1,
+
+cHRM => 1,
+
+gAMA => 1,
+
+hIST => 1,
+
+
+
+iCCP => 1,
+
+IDAT => 1,
+
+
+
+
+
+oFFs => 1,
+
+pCAL => 1,
+
+pHYs => 1,
+
+PLTE => 1,
+
+sBIT => 1,
+
+sCAL => 1,
+
+sPLT => 1,
+
+sRGB => 1,
+
+
+
+tIME => 1,
+
+tRNS => 1,
+
+
+
+);
+
+sub get_chunk
+{
+    my ($png, $chunk) = @_;
+    if ($chunk eq 'IDAT') {
+	croak "Use get_rows";
+    }
+    if ($known_chunks{$chunk}) {
+	no strict 'refs';
+	my $sub = "get_$chunk";
+	return &$sub ($png); 
+    }
+    return undef;
+}
+
+sub set_chunk
+{
+
+}
+
 
 1;
 

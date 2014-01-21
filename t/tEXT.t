@@ -3,6 +3,11 @@ use strict;
 use Test::More;
 use Image::PNG::Libpng ':all';
 use Image::PNG::Const ':all';
+
+if (! Image::PNG::Libpng::supports ('iTXt')) {
+    plan skip_all => 'libpng has no iTXt',
+}
+
 use utf8;
 use FindBin;
 use Scalar::Util 'looks_like_number';

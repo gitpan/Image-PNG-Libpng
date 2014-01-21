@@ -412,6 +412,8 @@ may or may not be valid. The chunks which you can test for are
 
 =item hIST
 
+=item hIST
+
 =item iCCP
 
 =item IDAT
@@ -897,8 +899,7 @@ module is using.
 B<Correspondence to libpng:> 
 
 This function corresponds to C<png_get_libpng_ver>. However, it
-doesn't require the C<png_structp> argument of the C function. See
-L</About libpng>.
+doesn't require the C<png_structp> argument of the C function.
 
 =head2 access_version_number
 
@@ -1465,6 +1466,9 @@ This function corresponds to C<png_set_hIST>
 
 =head1 UNIMPLEMENTED CHUNKS
 
+These chunks have skeleton routines but the actual reading and writing
+code is not yet implemented.
+
 =head2 sCAL
 
 This is an extension to the PNG specification. See
@@ -1526,6 +1530,55 @@ Does the libpng support international text?
 
 =back
 
+=head2 get_internals
+
+    my ($png_struct, $png_info) = get_internals ($png);
+
+This allows writers of XS extensions to Image::PNG::Libpng access to
+the internal C<png_structp> and C<png_infop> contained in C<$png>. The
+return value is a list containing the png_structp as the first
+argument and the png_infop as the second argument, wrapped up as
+references to objects of type C<Image::PNG::Libpng::png_struct> and
+C<Image::PNG::Libpng::png_info>.
+
+To access the values of the actual pointers from XS, use something
+like the following:
+
+    void access_png_internals (png, info)
+	SV * png;
+	SV * info;
+    PREINIT:
+	png_struct * cpng;
+	png_info * cinfo;
+    CODE:
+	cpng = INT2PTR (png_struct *, SvIV ((SV *) SvRV (png)));
+	cinfo = INT2PTR (png_info *, SvIV ((SV *) SvRV (info)));
+
+An example exists in L<Image::PNG::Cairo>.    
+
+=head2 set_transforms
+
+    $png->set_transforms (PNG_TRANSFORM_BGR);
+
+Set transforms for reading and writing. This is the same as the
+optional argument to L</read_png> or L</write_png>. If both this and
+the optional argument are given, the optional argument overrides what
+is set here.
+
+=head2 set_row_pointers
+
+    $png->set_row_pointers ($row_pointers);
+
+C<$row_pointers> should be set up something like the following:
+
+    RETVAL = newSV (0);
+    xv_setref_pv (RETVAL, "Image::PNG::Libpng::row_pointers", row_pointers);
+
+It's extracted using
+
+    
+
+
 =head1 EXPORTS
 
 Nothing is exported by default, but all the functions in this module
@@ -1559,7 +1612,7 @@ instances of unevaluated arguments, which have all been eliminated
 from this module.
 
 If you are interested in exactly which libpng arguments are omitted,
-you can find each instance L<in the file C<perl-libpng.c> in the top directory of the distribution|http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.23/perl-libpng.c> in the macro
+you can find each instance L<in the file C<perl-libpng.c> in the top directory of the distribution|http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.24/perl-libpng.c> in the macro
 C<UNUSED_ZERO_ARG>.
 
 =head2 Function return values are used to return values

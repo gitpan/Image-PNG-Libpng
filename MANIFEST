@@ -27,6 +27,7 @@ t/cHRM.t
 t/Const.t
 t/g03n2c08.png
 t/gAMA.t
+t/get-internals.t
 t/Libpng.t
 t/pHYs.t
 t/PLTE.t

@@ -78,9 +78,9 @@ void perl_png_read_image (Png)
 void perl_png_read_png (Png, transforms = PNG_TRANSFORM_IDENTITY)
         Image::PNG::Libpng  Png
         int transforms
-        CODE:
-        png_read_png (Png->png, Png->info, transforms, 0);
-        OUTPUT:
+CODE:
+        perl_png_read_png (Png, transforms);
+OUTPUT:
 
 SV * perl_png_get_text (Png)
         Image::PNG::Libpng  Png
@@ -183,13 +183,6 @@ SV * perl_png_get_valid (Png)
         RETVAL = perl_png_get_valid (Png);
         OUTPUT:
         RETVAL
-
-void perl_png_set_row_pointers (Png, row_pointers)
-        Image::PNG::Libpng Png
-        void * row_pointers
-        CODE:
-        perl_png_set_row_pointers (Png, row_pointers);
-        OUTPUT:
 
 void perl_png_set_tRNS_pointer (Png, tRNS_pointer, num_tRNS_pointer)
         Image::PNG::Libpng Png
@@ -371,6 +364,21 @@ void perl_png_set_gAMA (Png, gAMA)
         OUTPUT:
 
 
+SV * perl_png_get_hIST (Png)
+        Image::PNG::Libpng Png
+        CODE:
+        RETVAL = perl_png_get_hIST (Png);
+        OUTPUT:
+        RETVAL
+
+void perl_png_set_hIST (Png, hIST)
+        Image::PNG::Libpng Png
+        AV * hIST
+        CODE:
+        perl_png_set_hIST (Png, hIST);
+        OUTPUT:
+
+
 SV * perl_png_get_iCCP (Png)
         Image::PNG::Libpng Png
         CODE:
@@ -536,5 +544,35 @@ void perl_png_set_tRNS (Png, tRNS)
         OUTPUT:
 
 
-#line 243 "Libpng.xs.tmpl"
+#line 353 "Libpng.xs.tmpl"
 
+void perl_png_get_internals (Png)
+	Image::PNG::Libpng Png
+PREINIT:
+	png_structp png;
+	png_infop info;
+	SV * png_sv;
+	SV * info_sv;
+PPCODE:
+	png = Png->png;
+	info = Png->info;
+	png_sv = newSV (0);
+	info_sv = newSV (0);
+	sv_setref_pv(png_sv, "Image::PNG::Libpng::png_struct", png);
+	sv_setref_pv(info_sv, "Image::PNG::Libpng::png_info", info);
+	XPUSHs(sv_2mortal(png_sv));
+	XPUSHs(sv_2mortal(info_sv));
+
+void perl_png_set_transforms (Png, transforms)
+	Image::PNG::Libpng Png;
+	int transforms;
+CODE:
+	perl_png_set_transforms (Png, transforms);
+OUTPUT:
+
+void perl_png_set_row_pointers (Png, row_pointers)
+	Image::PNG::Libpng Png;
+	SV * row_pointers;
+CODE:
+	perl_png_set_row_pointers (Png, row_pointers);
+OUTPUT:

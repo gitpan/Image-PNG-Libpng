@@ -31,7 +31,6 @@ use Carp;
 	get_rowbytes
 	get_channels
 	get_valid
-	set_row_pointers
 	set_tRNS_pointer
 	set_rows
 	write_to_scalar
@@ -51,12 +50,17 @@ use Carp;
 	set_packing
 	set_strip_16
 	DESTROY
+	get_internals
+	set_transforms
+	set_row_pointers
 	get_bKGD
 	set_bKGD
 	get_cHRM
 	set_cHRM
 	get_gAMA
 	set_gAMA
+	get_hIST
+	set_hIST
 	get_iCCP
 	set_iCCP
 	get_IHDR
@@ -82,6 +86,7 @@ use Carp;
 read_png_file
 write_png_file
 color_type_name
+get_internals
 /;
 
 %EXPORT_TAGS = (
@@ -89,7 +94,7 @@ color_type_name
 );
 
 require XSLoader;
-our $VERSION = '0.23';
+our $VERSION = '0.24';
 
 XSLoader::load('Image::PNG::Libpng', $VERSION);
 

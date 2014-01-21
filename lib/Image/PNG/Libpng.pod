@@ -1437,7 +1437,7 @@ This function corresponds to C<png_set_pCAL>
 
 =head2 hIST
 
-See L<http://www.w3.org/TR/PNG/##11hIST>  of the PNG specification.
+See L<http://www.w3.org/TR/PNG/#11hIST>  of the PNG specification.
 
 =head3 get_hIST
 
@@ -1612,7 +1612,7 @@ instances of unevaluated arguments, which have all been eliminated
 from this module.
 
 If you are interested in exactly which libpng arguments are omitted,
-you can find each instance L<in the file C<perl-libpng.c> in the top directory of the distribution|http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.24/perl-libpng.c> in the macro
+you can find each instance L<in the file C<perl-libpng.c> in the top directory of the distribution|http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.25/perl-libpng.c> in the macro
 C<UNUSED_ZERO_ARG>.
 
 =head2 Function return values are used to return values

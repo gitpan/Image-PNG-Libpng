@@ -94,7 +94,7 @@ get_internals
 );
 
 require XSLoader;
-our $VERSION = '0.24';
+our $VERSION = '0.25';
 
 XSLoader::load('Image::PNG::Libpng', $VERSION);
 

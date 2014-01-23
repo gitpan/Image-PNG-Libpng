@@ -1653,7 +1653,7 @@ perl_png_get_rows (perl_libpng_t * png)
     height = png_get_image_height (pngi);
     if (height == 0) {
         /* The height of the image is zero. */
-        perl_png_error (png, "Image has no height");
+        perl_png_error (png, "Image has zero height");
     }
     else {
         MESSAGE ("Image has height %d\n", height);
@@ -2018,7 +2018,7 @@ int perl_png_libpng_supports (const char * what)
     }
     /* The user asked whether something was supported, but we don't
        know what that thing is. */
-    perl_png_warn (0, "Unknown string '%s'", what);
+    perl_png_warn (0, "Unknown whether '%s' is supported", what);
     return 0;
 }
 
@@ -2204,16 +2204,26 @@ static void perl_png_set_transforms (perl_libpng_t * png, int transforms)
     png->transforms = transforms;
 }
 
-/* Set "row_pointers" from malloced memory from elsewhere. */
+/* Copy "row_pointers" from malloced memory from elsewhere. */
 
-static void perl_png_set_row_pointers (perl_libpng_t * png, SV * row_pointers)
+static void perl_png_copy_row_pointers (perl_libpng_t * png, SV * row_pointers)
 {
     png_byte ** crow_pointers;
+    int i;
+    int height;
+
+    /* We didn't store the image's height in png so we have to
+       retrieve it from the header again. */
+
+    height = png_get_image_height (pngi);
 
     crow_pointers = INT2PTR (png_byte **, SvIV ((SV *) SvRV (row_pointers)));
 
-    png->row_pointers = crow_pointers;
-    png->memory_gets++;
+    GET_MEMORY (png->row_pointers, height, png_byte *);
+    for (i = 0; i < height; i++) {
+	png->row_pointers[i] = crow_pointers[i];
+    }
+    png_set_rows (pngi, png->row_pointers);
 }
 
 /*

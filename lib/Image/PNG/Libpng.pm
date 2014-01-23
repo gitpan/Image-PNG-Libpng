@@ -52,7 +52,7 @@ use Carp;
 	DESTROY
 	get_internals
 	set_transforms
-	set_row_pointers
+	copy_row_pointers
 	get_bKGD
 	set_bKGD
 	get_cHRM
@@ -94,7 +94,7 @@ get_internals
 );
 
 require XSLoader;
-our $VERSION = '0.27';
+our $VERSION = '0.28';
 
 XSLoader::load('Image::PNG::Libpng', $VERSION);
 

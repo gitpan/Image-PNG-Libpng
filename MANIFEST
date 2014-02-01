@@ -5,6 +5,7 @@ examples/color-type-name.pl
 examples/get-www-png.pl
 examples/png-cgi.pl
 examples/set-unknown-chunk.pl
+examples/supports.pl
 inc/Devel/CheckLib.pm
 lib/Image/PNG/Const.pm
 lib/Image/PNG/Libpng.pm
@@ -17,7 +18,6 @@ my-xs.h
 perl-libpng.c
 README
 script/pnginspect
-supports.pl
 t/bKGD-test.png
 t/bKGD.t
 t/cHRM.t
@@ -207,6 +207,8 @@ t/make-tEXT.pl
 t/pHYs.t
 t/PLTE.t
 t/saru-fs8.png
+t/sCAL.t
+t/supports.t
 t/tantei-san.png
 t/test.png
 t/text.t

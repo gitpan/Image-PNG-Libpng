@@ -64,6 +64,9 @@ This combines L</create_read_struct>, open, L</init_io>, and
 L</read_png>. The return value is the same as that of
 L</create_read_struct> with the entire PNG image already read in.
 
+The optional argument to L</read_png> can be specified using
+L</set_transforms>.
+
 =head2 write_png_file
 
      $png->write_png_file ('nice.png');
@@ -72,6 +75,9 @@ This combines open, L</init_io>, and L</write_png> to write an entire
 PNG image out to a file. C<$png> must be the object created by
 L</create_write_struct>, so L</read_png_file> followed by a call to
 this does not work.
+
+The optional argument to L</write_png> can be specified using
+L</set_transforms>.
 
 =head2 read_from_scalar
 
@@ -97,7 +103,8 @@ This is useful when image data is stored in a Perl scalar. For example
     
 
 
-See also L</Input/output manipulation functions>.
+See also L</Input/output manipulation functions>. The optional
+argument to L</read_png> can be specified using L</set_transforms>.
 
 =head2 write_to_scalar
 
@@ -134,6 +141,18 @@ L</create_write_struct>. The return value of the subroutine is the Perl scalar
 containing the image data.
 
 See also L</Input/output manipulation functions>.
+
+The optional argument to L</write_png> can be specified using
+L</set_transforms>.
+
+=head2 set_transforms
+
+    $png->set_transforms (PNG_TRANSFORM_BGR);
+
+Set transforms for reading and writing. This is the same as the
+optional argument to L</read_png> or L</write_png>. If both this and
+the optional argument are given, the optional argument overrides what
+is set here.
 
 =head1 New-like functions
 
@@ -1369,7 +1388,7 @@ The colour profile.
 
 B<Correspondence to libpng:> 
 
-This function corresponds to C<png_get_sCCP>
+This function corresponds to C<png_get_iCCP>.
 
 =head3 set_iCCP
 
@@ -1379,7 +1398,7 @@ This function corresponds to C<png_get_sCCP>
 
 B<Correspondence to libpng:> 
 
-This function corresponds to C<png_set_sCCP>
+This function corresponds to C<png_set_iCCP>.
 
 =head2 pCAL
 
@@ -1468,23 +1487,69 @@ B<Correspondence to libpng:>
 
 This function corresponds to C<png_set_hIST>
 
-=head1 UNIMPLEMENTED CHUNKS
-
-These chunks have skeleton routines but the actual reading and writing
-code is not yet implemented.
-
 =head2 sCAL
 
 This is an extension to the PNG specification. See
 L<http://www.libpng.org/pub/png/spec/1.1/pngext-1.1.0-pdg.html#C.sCAL>.
 
+You can test whether your version of libpng supports the sCAL chunk
+with L</libpng_supports> as follows:
+
+    if (libpng_supports ('sCAL')) {
+        # do something
+    }
+
 =head3 get_sCAL
 
-Not implemented.
+    my $scal = $png->get_sCAL ();
+
+The returned hash value contains the following keys:
+
+=over
+
+=item unit
+
+The unit type, which is either PNG_SCALE_UNKNOWN, PNG_SCALE_METER, or
+PNG_SCALE_RADIAN.
+
+=item width
+
+The width, as a string.
+
+=item height
+
+The height, as a string.
+
+=back
+
+
+
+
+B<Correspondence to libpng:> 
+
+This function corresponds to C<png_get_sCAL_s>. Note that this uses the sCAL_s function
+rather than the get_sCAL and the returned values are the strings
+themselves rather than parsed numbers.
 
 =head3 set_sCAL
 
-Not implemented.
+    $png->set_sCAL ($scal);
+
+C<$scal> is a hash reference containing the keys described in
+L</get_sCAL>.
+
+
+
+B<Correspondence to libpng:> 
+
+This function corresponds to C<png_set_sCAL_s>. Note that this uses the C<set_sCAL_s>
+function rather than C<set_sCAL> and the input values are the strings
+themselves rather than numbers.
+
+=head1 UNIMPLEMENTED CHUNKS
+
+These chunks have skeleton routines but the actual reading and writing
+code is not yet implemented.
 
 =head2 tRNS
 
@@ -1540,11 +1605,22 @@ Does the libpng support text?
 
 Does the libpng support compressed text?
 
+=item sCAL
+
+Does the libpng support the L</sCAL> extension?
+
+=item pCAL
+
+Does the libpng support the L</pCAL> extension?
+
 =back
 
 =head1 ACCESS FUNCTIONS
 
-These functions are used to access parts of the C<$png> object itself.
+These functions are used to access parts of the C<$png> object
+itself. They are for people who are writing C or XS code and need to
+directly access the C structures within the Perl object rather than go
+via the supplied functions.
 
 =head2 get_internals
 
@@ -1571,15 +1647,6 @@ like the following:
 	cinfo = INT2PTR (png_info *, SvIV ((SV *) SvRV (info)));
 
 An example exists in L<Image::PNG::Cairo>.    
-
-=head2 set_transforms
-
-    $png->set_transforms (PNG_TRANSFORM_BGR);
-
-Set transforms for reading and writing. This is the same as the
-optional argument to L</read_png> or L</write_png>. If both this and
-the optional argument are given, the optional argument overrides what
-is set here.
 
 =head2 copy_row_pointers
 
@@ -1638,7 +1705,7 @@ instances of unevaluated arguments, which have all been eliminated
 from this module.
 
 If you are interested in exactly which libpng arguments are omitted,
-you can find each instance L<in the file C<perl-libpng.c> in the top directory of the distribution|http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.28/perl-libpng.c> in the macro
+you can find each instance L<in the file C<perl-libpng.c> in the top directory of the distribution|http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.28_01/perl-libpng.c> in the macro
 C<UNUSED_ZERO_ARG>.
 
 =head2 Function return values are used to return values
@@ -1759,6 +1826,12 @@ Other unsupported functions include
 
 =item png_set_tRNS_to_alpha
 
+=item png_set_user_limits
+
+=item png_get_user_width_max
+
+=item png_get_user_height_max
+
 =back
 
 Unfortunately there are a raft of functions in libpng, many completely
@@ -1870,6 +1943,22 @@ The user tried to set a PNG header with unacceptable values, as indicated.
 
 (F) 
 The user tried to set an empty palette of colours.
+
+
+
+
+=item sCAL chunk not supported in this libpng
+
+(W) 
+PNG_sCAL_SUPPORTED
+
+
+
+
+=item sCAL chunk not supported in this libpng
+
+(W) 
+PNG_sCAL_SUPPORTED
 
 
 
@@ -2121,6 +2210,13 @@ Perl versions 5.12 or later.
 L<Image::Pngslimmer> reduces the size of dynamically created PNG
 images. It's very, very slow at reading PNG data, but seems to work
 OK.
+
+=item Imager
+
+L<Imager>, L<Imager::Files> and L<Imager::Files::PNG> contain support
+for reading and writing PNGs via libpng, as well as support for
+reading and writing various other kinds of image files, changing the
+images, converting, and more.
 
 =back
 

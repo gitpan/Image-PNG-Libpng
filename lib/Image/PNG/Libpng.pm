@@ -2,11 +2,13 @@
 # code for this file is in Libpng.xs in the top directory.
 
 package Image::PNG::Libpng;
+use warnings;
+use strict;
+
 require Exporter;
-require DynaLoader;
 use Carp;
-@ISA = qw(Exporter);
-@EXPORT_OK = qw/
+our @ISA = qw(Exporter);
+our @EXPORT_OK = qw/
 	create_read_struct
 	create_write_struct
 	destroy_read_struct
@@ -89,12 +91,12 @@ color_type_name
 get_internals
 /;
 
-%EXPORT_TAGS = (
+our %EXPORT_TAGS = (
     all => \@EXPORT_OK,
 );
 
 require XSLoader;
-our $VERSION = '0.28';
+our $VERSION = '0.28_01';
 
 XSLoader::load('Image::PNG::Libpng', $VERSION);
 

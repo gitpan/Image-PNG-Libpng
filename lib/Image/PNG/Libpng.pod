@@ -1607,7 +1607,10 @@ Does the libpng support compressed text?
 
 =item sCAL
 
-Does the libpng support the L</sCAL> extension?
+Does the libpng support the L</sCAL> extension?  This actually tests
+for the presence of the C<get_sCAL_s>/C<set_sCAL_s> functions, so its
+behaviour is dependent on other factors for versions 1.2 and 1.4 of
+libpng.
 
 =item pCAL
 
@@ -1705,7 +1708,7 @@ instances of unevaluated arguments, which have all been eliminated
 from this module.
 
 If you are interested in exactly which libpng arguments are omitted,
-you can find each instance L<in the file C<perl-libpng.c> in the top directory of the distribution|http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.28_02/perl-libpng.c> in the macro
+you can find each instance L<in the file C<perl-libpng.c> in the top directory of the distribution|http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.28_03/perl-libpng.c> in the macro
 C<UNUSED_ZERO_ARG>.
 
 =head2 Function return values are used to return values
@@ -1950,7 +1953,7 @@ The user tried to set an empty palette of colours.
 =item sCAL chunk not supported in this libpng
 
 (W) 
-PNG_sCAL_REALLY_SUPPORTED
+PNG_sCAL_s_SUPPORTED
 
 
 
@@ -1958,7 +1961,7 @@ PNG_sCAL_REALLY_SUPPORTED
 =item sCAL chunk not supported in this libpng
 
 (W) 
-PNG_sCAL_REALLY_SUPPORTED
+PNG_sCAL_s_SUPPORTED
 
 
 

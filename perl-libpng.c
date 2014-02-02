@@ -1,20 +1,23 @@
-#line 2 "tmpl/perl-libpng.c.tmpl"
-#include <stdarg.h>
-#include <png.h>
-#include <time.h>
+#line 2 "perl-libpng.c.tmpl"
 
-#include "my-xs.h"
+#ifndef PNG_FLOATING_POINT_SUPPORTED
+#  error libpng support requires libpng to export the floating point APIs
+#endif
+
+/* What to do if the chunk is not supported by the libpng we compiled
+   against. */
+
+#define UNSUPPORTED(block)						\
+    perl_png_warn (png, #block " chunk not supported in this libpng");
 
 /* sCAL block support. This is complicated, see PNG mailing list
    archives. */
 
 #ifdef PNG_sCAL_SUPPORTED
-#if PNG_LIBPNG_VER_MINOR > 4 ||						\
-    (defined (PNG_FIXED_POINT_SUPPORTED) &&  PNG_LIBPNG_VER_MINOR > 2)	\
-    || (PNG_LIBPNG_VER_MINOR == 2 &&					\
-	defined (PNG_FIXED_POINT_SUPPORTED) &&				\
-	! defined (PNG_FLOATING_POINT_SUPPORTED))
-#define PNG_sCAL_s_SUPPORTED
+#if PNG_LIBPNG_VER >= 10500 ||				\
+    (defined (PNG_FIXED_POINT_SUPPORTED) &&		\
+     ! defined (PNG_FLOATING_POINT_SUPPORTED))
+#define PERL_PNG_sCAL_s_SUPPORTED
 #endif /* version or fixed point */
 #endif /* PNG_sCAL_SUPPORTED */
 
@@ -29,7 +32,8 @@ typedef struct perl_libpng {
     png_bytepp  row_pointers;
     /* Allocated memory which holds the image data. */
     png_bytep image_data;
-    /* Number of times we have called calloc. */
+    /* Number of times we have called "calloc"-like functions, for
+       detecting memory leaks. */
     int memory_gets;
 
     /* Transforms to apply. */
@@ -516,7 +520,8 @@ perl_png_get_text (perl_libpng_t * png)
         UNDEF;
     }
 #else
-    return &PL_sv_undef;
+    UNSUPPORTED(tEXt);
+    UNDEF;
 #endif
 }
 
@@ -528,16 +533,16 @@ perl_png_set_text_from_hash (perl_libpng_t * png,
                              png_text * text_out, HV * chunk)
 {
     int compression;
-    unsigned char * key;
+    char * key;
     unsigned int key_length;
 #ifdef PNG_iTXt_SUPPORTED
-    unsigned char * language_tag;
+    char * language_tag;
     unsigned int language_tag_length;
-    unsigned char * translated_key;
+    char * translated_key;
     unsigned int translated_key_length;
 #endif /* PNG_iTXt_SUPPORTED */
     int is_itxt = 0;
-    unsigned char * text;
+    char * text;
     unsigned int text_length;
     /* The return value of this function. */
     int ok = 1;
@@ -546,19 +551,7 @@ perl_png_set_text_from_hash (perl_libpng_t * png,
 
     /* Check the compression field of the chunk */
 
-#define FETCH_IV(field) {                                       \
-        SV * field_sv;                                          \
-        SV ** field_sv_ptr = hv_fetch (chunk, #field,           \
-                                       strlen (#field), 0);     \
-        if (! field_sv_ptr) {                                   \
-            fprintf (stderr, "Field %s is missing.\n",          \
-                     #field);                                   \
-            return 0;                                           \
-        }                                                       \
-        field_sv = * field_sv_ptr;                              \
-        field = SvIV (field_sv);                                \
-    }
-    FETCH_IV (compression);
+    HASH_FETCH_IV (chunk, compression);
     switch (compression) {
     case PNG_TEXT_COMPRESSION_NONE:
         break;
@@ -578,24 +571,8 @@ perl_png_set_text_from_hash (perl_libpng_t * png,
         break;
     }
 
-#define FETCH_PV(field) {                                       \
-        SV * field_sv;                                          \
-        SV ** field_sv_ptr = hv_fetch (chunk, #field,           \
-                                       strlen (#field), 0);     \
-        if (! field_sv_ptr) {                                   \
-            fprintf (stderr, "Field %s is missing.\n",          \
-                     #field);                                   \
-            field = (unsigned char *) "";                       \
-        }                                                       \
-        else {                                                  \
-            field_sv = * field_sv_ptr;                          \
-            field = (unsigned char *)                           \
-                SvPV (field_sv, field ## _length);              \
-        }                                                       \
-    }
-
     MESSAGE ("Getting key.");
-    FETCH_PV (key);
+    HASH_FETCH_PV (chunk, key);
     if (key_length < 1 || key_length > 79) {
         /* Key is too long or empty */
         MESSAGE ("Bad length of key.");
@@ -604,7 +581,7 @@ perl_png_set_text_from_hash (perl_libpng_t * png,
         return 0;
     }
     MESSAGE ("Getting text.");
-    FETCH_PV (text);
+    HASH_FETCH_PV (chunk, text);
     if (ok) {
         MESSAGE ("Copying.");
         text_out->compression = compression;
@@ -613,8 +590,8 @@ perl_png_set_text_from_hash (perl_libpng_t * png,
         text_out->text_length = text_length;
 #ifdef PNG_iTXt_SUPPORTED
         if (is_itxt) {
-            FETCH_PV (language_tag);
-            FETCH_PV (translated_key);
+            HASH_FETCH_PV (chunk, language_tag);
+            HASH_FETCH_PV (chunk, translated_key);
             text_out->lang = (char *) language_tag;
             text_out->lang_key = (char *) translated_key;
         }
@@ -993,19 +970,13 @@ perl_png_get_IHDR (perl_libpng_t * png)
     status = png_get_IHDR (pngi, & width, & height,
                            & bit_depth, & color_type, & interlace_method,
                            & compression_method, & filter_method);
-#define STORE(x) {                                                      \
-        if (!hv_store (IHDR, #x, strlen (#x), newSViv (x), 0)) {        \
-            fprintf (stderr, "hv_store failed.\n");                     \
-        }                                                               \
-    }
-    STORE (width);
-    STORE (height);
-    STORE (bit_depth);
-    STORE (color_type);
-    STORE (interlace_method);
-    STORE (compression_method);
-    STORE (filter_method);
-#undef STORE
+    HASH_STORE_IV (IHDR, width);
+    HASH_STORE_IV (IHDR, height);
+    HASH_STORE_IV (IHDR, bit_depth);
+    HASH_STORE_IV (IHDR, color_type);
+    HASH_STORE_IV (IHDR, interlace_method);
+    HASH_STORE_IV (IHDR, compression_method);
+    HASH_STORE_IV (IHDR, filter_method);
 
     return newRV_inc ((SV *) IHDR);
 }
@@ -1305,7 +1276,7 @@ static SV * perl_png_get_pCAL (perl_libpng_t * png)
     }
     return newRV_inc ((SV *) ice);
 #else
-    /* Print a warnings. */
+    UNSUPPORTED(pCAL);
     UNDEF;
 #endif
 }
@@ -1347,6 +1318,7 @@ static void perl_png_set_pCAL (perl_libpng_t * png, HV * pCAL)
     }
     png_set_pCAL (pngi, purpose, x0, x1, type, n_params, units, png_params);
 #else
+    UNSUPPORTED(pCAL);
 #endif
 }
 
@@ -1389,10 +1361,9 @@ static void perl_png_set_gAMA (perl_libpng_t * png, double gamma)
     png_set_gAMA (pngi, gamma);
 }
 
-/* iCCP does nothing. */
-
 static SV * perl_png_get_iCCP (perl_libpng_t * png)
 {
+#ifdef PNG_iCCP_SUPPORTED
     if (VALID (iCCP)) {
 	char * name;
 	unsigned char * profile;
@@ -1409,10 +1380,15 @@ static SV * perl_png_get_iCCP (perl_libpng_t * png)
         return newRV_inc ((SV *) ice);
     }
     UNDEF;
+#else /* PNG_iCCP_SUPPORTED */
+    UNSUPPORTED(iCCP);
+    UNDEF;
+#endif /* PNG_iCCP_SUPPORTED */
 }
 
 static void perl_png_set_iCCP (perl_libpng_t * png, HV * iCCP)
 {
+#ifdef PNG_iCCP_SUPPORTED
     char * name;
     unsigned int name_length;
     char * profile;
@@ -1426,7 +1402,12 @@ static void perl_png_set_iCCP (perl_libpng_t * png, HV * iCCP)
 
     png_set_iCCP (pngi, name, compression_method,
 		  (unsigned char *) profile, profile_length);
+#else /* PNG_iCCP_SUPPORTED */
+    UNSUPPORTED(iCCP);
+#endif /* PNG_iCCP_SUPPORTED */
 }
+
+/* Empty code. */
 
 static SV * perl_png_get_tRNS (perl_libpng_t * png)
 {
@@ -1437,6 +1418,8 @@ static SV * perl_png_get_tRNS (perl_libpng_t * png)
     }
     UNDEF;
 }
+
+/* Empty code. */
 
 static void perl_png_set_tRNS (perl_libpng_t * png, HV * tRNS)
 {
@@ -1449,7 +1432,7 @@ static void perl_png_set_tRNS_pointer (perl_libpng_t * png, png_bytep trans, int
 
 static SV * perl_png_get_sCAL (perl_libpng_t * png)
 {
-#ifdef PNG_sCAL_s_SUPPORTED
+#ifdef PERL_PNG_sCAL_s_SUPPORTED
     if (VALID (sCAL)) {
         HV * ice;
 	int unit;
@@ -1463,15 +1446,15 @@ static SV * perl_png_get_sCAL (perl_libpng_t * png)
         return newRV_inc ((SV *) ice);
     }
     UNDEF;
-#else /* PNG_sCAL_s_SUPPORTED */
-    perl_png_warn (png, "sCAL chunk not supported in this libpng");
+#else /* PERL_PNG_sCAL_s_SUPPORTED */
+    UNSUPPORTED(sCAL);
     UNDEF;
-#endif /* PNG_sCAL_s_SUPPORTED */
+#endif /* PERL_PNG_sCAL_s_SUPPORTED */
 }
 
 static void perl_png_set_sCAL (perl_libpng_t * png, HV * sCAL)
 {
-#ifdef PNG_sCAL_s_SUPPORTED
+#ifdef PERL_PNG_sCAL_s_SUPPORTED
     int unit;
     char * width;
     char * height;
@@ -1481,13 +1464,14 @@ static void perl_png_set_sCAL (perl_libpng_t * png, HV * sCAL)
     HASH_FETCH_PV (sCAL, width);
     HASH_FETCH_PV (sCAL, height);
     png_set_sCAL_s (pngi, unit, width, height);
-#else /* PNG_sCAL_s_SUPPORTED */
+#else /* PERL_PNG_sCAL_s_SUPPORTED */
     perl_png_warn (png, "sCAL chunk not supported in this libpng");
-#endif /* PNG_sCAL_s_SUPPORTED */
+#endif /* PERL_PNG_sCAL_s_SUPPORTED */
 }
 
 static void perl_png_set_hIST (perl_libpng_t * png, AV * hIST)
 {
+#ifdef PNG_hIST_SUPPORTED
     int hist_size;
     png_uint_16p hist;
     int i;
@@ -1497,10 +1481,15 @@ static void perl_png_set_hIST (perl_libpng_t * png, AV * hIST)
 	ARRAY_FETCH_IV (hIST, i, hist[i]);
     }
     png_set_hIST (pngi, hist);
+#else
+    UNSUPPORTED(hIST);
+#endif
 }
 
 static SV * perl_png_get_hIST (perl_libpng_t * png)
 {
+#ifdef PNG_hIST_SUPPORTED
+    if (VALID (hIST)) {
     png_colorp colours;
     int n_colours;
     AV * hist_av;
@@ -1515,6 +1504,12 @@ static SV * perl_png_get_hIST (perl_libpng_t * png)
 	av_push (hist_av, newSViv (hist[i]));
     }
     return newRV_inc ((SV *) hist_av);
+    }
+    UNDEF;
+#else
+    UNSUPPORTED(hIST);
+    UNDEF;
+#endif
 }
 
 /* Should this be a hash value or an array? */
@@ -1660,9 +1655,9 @@ static SV * perl_png_get_valid (perl_libpng_t * png)
     valid = png_get_valid (pngi, 0xFFFFFFFF);
 #define V(x) \
     (void) hv_store (perl_valid, #x, strlen (#x), newSViv (valid & PNG_INFO_ ## x), 0)
-
+#line 1658 "perl-libpng.c"
 V(bKGD);V(cHRM);V(gAMA);V(hIST);V(iCCP);V(IDAT);V(oFFs);V(pCAL);V(pHYs);V(PLTE);V(sBIT);V(sCAL);V(sPLT);V(sRGB);V(tIME);V(tRNS);
-
+#line 1661 "perl-libpng.c.tmpl"
 #undef V
 
     return newRV_inc ((SV *) perl_valid);
@@ -1878,9 +1873,8 @@ static void perl_png_handle_error (perl_libpng_t * png, int die, int raise)
 #define UNDEF return &PL_sv_undef
 
 
-/* PNG chunks have to be four bytes in length. The following macro is
-   defined solely in order to make this program more readable to human
-   programmers. */
+/* PNG chunk names have to be four bytes in length. The following
+   macro is to make this readable to humans. */
 
 #define PERL_PNG_CHUNK_NAME_LENGTH 4
 
@@ -2012,7 +2006,7 @@ static void perl_png_set_unknown_chunks (perl_libpng_t * png, AV * chunk_list)
         
         png_chunk->data = (unsigned char *) data;
         png_chunk->size = data_length;
-	printf ("data is %d %s\n", data_length, data);
+	//	printf ("data is %d %s\n", data_length, data);
         n_ok_chunks++;
     }
     png_set_keep_unknown_chunks(png->png, 3,
@@ -2033,12 +2027,20 @@ static void perl_png_set_unknown_chunks (perl_libpng_t * png, AV * chunk_list)
 
 int perl_png_libpng_supports (const char * what)
 {
+#line 2030 "perl-libpng.c"
     if (strcmp (what, "iTXt") == 0) {
 #ifdef PNG_iTXt_SUPPORTED
         return 1;
 #else
         return 0;
 #endif /* iTXt */
+    }
+    if (strcmp (what, "UNKNOWN_CHUNKS") == 0) {
+#ifdef PNG_UNKNOWN_CHUNKS_SUPPORTED
+        return 1;
+#else
+        return 0;
+#endif /* UNKNOWN_CHUNKS */
     }
     if (strcmp (what, "zTXt") == 0) {
 #ifdef PNG_zTXt_SUPPORTED
@@ -2055,19 +2057,27 @@ int perl_png_libpng_supports (const char * what)
 #endif /* tEXt */
     }
     if (strcmp (what, "sCAL") == 0) {
-#ifdef PNG_sCAL_s_SUPPORTED
+#ifdef PNG_sCAL_SUPPORTED
         return 1;
 #else
         return 0;
-#endif /* tEXt */
+#endif /* sCAL */
     }
     if (strcmp (what, "pCAL") == 0) {
 #ifdef PNG_pCAL_SUPPORTED
         return 1;
 #else
         return 0;
-#endif /* tEXt */
+#endif /* pCAL */
     }
+    if (strcmp (what, "iCCP") == 0) {
+#ifdef PNG_iCCP_SUPPORTED
+        return 1;
+#else
+        return 0;
+#endif /* iCCP */
+    }
+#line 2041 "perl-libpng.c.tmpl"
     /* The user asked whether something was supported, but we don't
        know what that thing is. */
     perl_png_warn (0, "Unknown whether '%s' is supported", what);
@@ -2142,7 +2152,7 @@ perl_png_set_keep_unknown_chunks (perl_libpng_t * png, int keep,
     }
 #else
     /* libpng was compiled without this option. */
-    perl_png_error (png, "set_keep_unknown_chunks is not supported in your libpng");
+    UNSUPPORTED (UNKNOWN_CHUNKS);
 #endif
 }
 
@@ -2174,6 +2184,7 @@ static SV * perl_png_get_cHRM (perl_libpng_t * png)
 {
     if (VALID (cHRM)) {
         HV * ice;
+#line 2187 "perl-libpng.c"
         double white_x;
         double white_y;
         double red_x;
@@ -2182,8 +2193,10 @@ static SV * perl_png_get_cHRM (perl_libpng_t * png)
         double green_y;
         double blue_x;
         double blue_y;
+#line 2152 "perl-libpng.c.tmpl"
         png_get_cHRM (pngi , & white_x, & white_y, & red_x, & red_y, & green_x, & green_y, & blue_x, & blue_y);
         ice = newHV ();
+#line 2199 "perl-libpng.c"
         (void) hv_store (ice, "white_x", strlen ("white_x"),
                          newSVnv (white_x), 0);
         (void) hv_store (ice, "white_y", strlen ("white_y"),
@@ -2200,6 +2213,7 @@ static SV * perl_png_get_cHRM (perl_libpng_t * png)
                          newSVnv (blue_x), 0);
         (void) hv_store (ice, "blue_y", strlen ("blue_y"),
                          newSVnv (blue_y), 0);
+#line 2161 "perl-libpng.c.tmpl"
         return newRV_inc ((SV *) ice);
     }
     UNDEF;
@@ -2208,6 +2222,7 @@ static SV * perl_png_get_cHRM (perl_libpng_t * png)
 static void perl_png_set_cHRM (perl_libpng_t * png, HV * cHRM)
 {
     SV ** key_sv_ptr;
+#line 2225 "perl-libpng.c"
     double white_x = 0.0;
     double white_y = 0.0;
     double red_x = 0.0;
@@ -2248,7 +2263,9 @@ static void perl_png_set_cHRM (perl_libpng_t * png, HV * cHRM)
     if (key_sv_ptr) {
         blue_y = SvNV (* key_sv_ptr);
     }
+#line 2180 "perl-libpng.c.tmpl"
     png_set_cHRM (pngi, white_x, white_y, red_x, red_y, green_x, green_y, blue_x, blue_y);
+#line 2183 "perl-libpng.c.tmpl"
 }
 
 static void perl_png_set_transforms (perl_libpng_t * png, int transforms)

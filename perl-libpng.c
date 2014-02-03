@@ -99,9 +99,12 @@ typedef perl_libpng_t * Image__PNG__Libpng;
         }                                       \
         return &PL_sv_undef;                    \
     }
+
+#undef PERL_PNG_MESSAGES
+
 /* Send a message. */
 
-#if 1
+#ifdef PERL_PNG_MESSAGES
 #define MESSAGE(x...) {                                 \
         if (png->verbosity) {                           \
             printf ("%s:%d: ", __FILE__, __LINE__);     \
@@ -483,10 +486,6 @@ perl_png_textp_to_hash (perl_libpng_t * png, const png_textp text_ptr)
 }
 #endif /* tEXt_SUPPORTED */
 
-/*
-  This is the C part of Image::PNG::Libpng::get_text.
- */
-
 static SV *
 perl_png_get_text (perl_libpng_t * png)
 {
@@ -727,7 +726,7 @@ perl_png_get_tIME (perl_libpng_t * png)
     }
 }
 
-/* Set the time in the PNG from "time". */
+/* Set the time in the PNG from "input_time". */
 
 static void
 perl_png_set_tIME (perl_libpng_t * png, SV * input_time)
@@ -736,9 +735,9 @@ perl_png_set_tIME (perl_libpng_t * png, SV * input_time)
        See PNG specification "4.2.4.6. tIME Image last-modification time"
     */
     png_time mod_time = {0,1,1,0,0,0};
-    SV * ref;
     int time_ok = 0;
     if (input_time) {
+	SV * ref;
         ref = SvRV(input_time);
         if (ref && SvTYPE (ref) == SVt_PVHV) {
             HV * time_hash = (HV *) SvRV (input_time);
@@ -1322,24 +1321,6 @@ static void perl_png_set_pCAL (perl_libpng_t * png, HV * pCAL)
 #endif
 }
 
-/* Get the sPLT chunk of a PNG image. This currently does nothing. */
-
-static SV * perl_png_get_sPLT (perl_libpng_t * png)
-{
-    if (VALID (sPLT)) {
-        HV * ice;
-        ice = newHV ();
-        return newRV_inc ((SV *) ice);
-    }
-    UNDEF;
-}
-
-/* Set the sPLT chunk of a PNG image. This currently does nothing. */
-
-static void perl_png_set_sPLT (perl_libpng_t * png, HV * sPLT)
-{
-}
-
 /* Get the gAMA of a PNG image. */
 
 static SV * perl_png_get_gAMA (perl_libpng_t * png)
@@ -1407,6 +1388,12 @@ static void perl_png_set_iCCP (perl_libpng_t * png, HV * iCCP)
 #endif /* PNG_iCCP_SUPPORTED */
 }
 
+static void
+perl_png_set_tRNS_pointer (perl_libpng_t * png, png_bytep trans, int num_trans)
+{
+    png_set_tRNS (pngi, trans, num_trans, 0);
+}
+
 /* Empty code. */
 
 static SV * perl_png_get_tRNS (perl_libpng_t * png)
@@ -1425,9 +1412,22 @@ static void perl_png_set_tRNS (perl_libpng_t * png, HV * tRNS)
 {
 }
 
-static void perl_png_set_tRNS_pointer (perl_libpng_t * png, png_bytep trans, int num_trans)
+/* Get the sPLT chunk of a PNG image. This currently does nothing. */
+
+static SV * perl_png_get_sPLT (perl_libpng_t * png)
 {
-    png_set_tRNS (pngi, trans, num_trans, 0);
+    if (VALID (sPLT)) {
+        HV * ice;
+        ice = newHV ();
+        return newRV_inc ((SV *) ice);
+    }
+    UNDEF;
+}
+
+/* Set the sPLT chunk of a PNG image. This currently does nothing. */
+
+static void perl_png_set_sPLT (perl_libpng_t * png, HV * sPLT)
+{
 }
 
 static SV * perl_png_get_sCAL (perl_libpng_t * png)
@@ -1490,20 +1490,20 @@ static SV * perl_png_get_hIST (perl_libpng_t * png)
 {
 #ifdef PNG_hIST_SUPPORTED
     if (VALID (hIST)) {
-    png_colorp colours;
-    int n_colours;
-    AV * hist_av;
-    png_uint_16p hist;
-    int i;
+	png_colorp colours;
+	int n_colours;
+	AV * hist_av;
+	png_uint_16p hist;
+	int i;
 
-    png_get_PLTE (pngi, & colours, & n_colours);
-    hist_av = newAV ();
-    png_get_hIST (pngi, & hist);
+	png_get_PLTE (pngi, & colours, & n_colours);
+	hist_av = newAV ();
+	png_get_hIST (pngi, & hist);
 
-    for (i = 0; i < n_colours; i++) {
-	av_push (hist_av, newSViv (hist[i]));
-    }
-    return newRV_inc ((SV *) hist_av);
+	for (i = 0; i < n_colours; i++) {
+	    av_push (hist_av, newSViv (hist[i]));
+	}
+	return newRV_inc ((SV *) hist_av);
     }
     UNDEF;
 #else
@@ -1914,20 +1914,26 @@ static SV * perl_png_get_unknown_chunks (perl_libpng_t * png)
 
             png_chunk = unknown_chunks + i;
             perl_chunk = newHV ();
+	    /* This is possibly an unnecessary check since it's been
+	       done within libpng. */
             if (strlen ((const char *) png_chunk->name) != PERL_PNG_CHUNK_NAME_LENGTH) {
-                /* We tried to set an unknown chunk with a name which
-                   doesn't have four characters. */
                 perl_png_error (png, "Chunk name '%s' has wrong number of "
                                 "characters: %d required",
                                 png_chunk->name,
                                 PERL_PNG_CHUNK_NAME_LENGTH);
-                /* PANIC */
             }
+
+	    /* Make Perl scalars from the chunk name and the PNG data
+	       segment. */
+
             name = newSVpvn (((char *) png_chunk->name),
                              PERL_PNG_CHUNK_NAME_LENGTH);
-            data = newSVpvn (((char *) png_chunk->name),
+            data = newSVpvn (((char *) png_chunk->data),
                              png_chunk->size);
             location = newSViv (png_chunk->location);
+
+	    /* Put the scalars into the hash. */
+
 #define STORE(x) (void) hv_store (perl_chunk, #x, strlen (#x), x, 0);
             STORE(name);
             STORE(data);
@@ -1939,8 +1945,8 @@ static SV * perl_png_get_unknown_chunks (perl_libpng_t * png)
         return newRV_inc ((SV *) chunk_list);
     }
 #else
-    perl_png_warn (png, "read unknown chunks not supported in this libpng");
-    return & PL_sv_undef;
+    UNSUPPORTED(READ_UNKNOWN_CHUNKS);
+    UNDEF;
 #endif
 }
 
@@ -2019,7 +2025,7 @@ static void perl_png_set_unknown_chunks (perl_libpng_t * png, AV * chunk_list)
     }
     PERL_PNG_FREE (unknown_chunks);
 #else
-    perl_png_warn (png, "write unknown chunks not supported in this libpng");
+    UNSUPPORTED(WRITE_UNKNOWN_CHUNKS);
 #endif
 }
 
@@ -2027,7 +2033,7 @@ static void perl_png_set_unknown_chunks (perl_libpng_t * png, AV * chunk_list)
 
 int perl_png_libpng_supports (const char * what)
 {
-#line 2030 "perl-libpng.c"
+#line 2036 "perl-libpng.c"
     if (strcmp (what, "iTXt") == 0) {
 #ifdef PNG_iTXt_SUPPORTED
         return 1;
@@ -2056,13 +2062,6 @@ int perl_png_libpng_supports (const char * what)
         return 0;
 #endif /* tEXt */
     }
-    if (strcmp (what, "sCAL") == 0) {
-#ifdef PNG_sCAL_SUPPORTED
-        return 1;
-#else
-        return 0;
-#endif /* sCAL */
-    }
     if (strcmp (what, "pCAL") == 0) {
 #ifdef PNG_pCAL_SUPPORTED
         return 1;
@@ -2077,7 +2076,17 @@ int perl_png_libpng_supports (const char * what)
         return 0;
 #endif /* iCCP */
     }
-#line 2041 "perl-libpng.c.tmpl"
+#line 2047 "perl-libpng.c.tmpl"
+
+    /* sCAL is a special case. */
+
+    if (strcmp (what, "sCAL") == 0) {
+#ifdef PERL_PNG_sCAL_s_SUPPORTED
+        return 1;
+#else
+        return 0;
+#endif /* sCAL */
+    }
     /* The user asked whether something was supported, but we don't
        know what that thing is. */
     perl_png_warn (0, "Unknown whether '%s' is supported", what);
@@ -2184,7 +2193,7 @@ static SV * perl_png_get_cHRM (perl_libpng_t * png)
 {
     if (VALID (cHRM)) {
         HV * ice;
-#line 2187 "perl-libpng.c"
+#line 2196 "perl-libpng.c"
         double white_x;
         double white_y;
         double red_x;
@@ -2193,10 +2202,10 @@ static SV * perl_png_get_cHRM (perl_libpng_t * png)
         double green_y;
         double blue_x;
         double blue_y;
-#line 2152 "perl-libpng.c.tmpl"
+#line 2168 "perl-libpng.c.tmpl"
         png_get_cHRM (pngi , & white_x, & white_y, & red_x, & red_y, & green_x, & green_y, & blue_x, & blue_y);
         ice = newHV ();
-#line 2199 "perl-libpng.c"
+#line 2208 "perl-libpng.c"
         (void) hv_store (ice, "white_x", strlen ("white_x"),
                          newSVnv (white_x), 0);
         (void) hv_store (ice, "white_y", strlen ("white_y"),
@@ -2213,7 +2222,7 @@ static SV * perl_png_get_cHRM (perl_libpng_t * png)
                          newSVnv (blue_x), 0);
         (void) hv_store (ice, "blue_y", strlen ("blue_y"),
                          newSVnv (blue_y), 0);
-#line 2161 "perl-libpng.c.tmpl"
+#line 2177 "perl-libpng.c.tmpl"
         return newRV_inc ((SV *) ice);
     }
     UNDEF;
@@ -2222,7 +2231,7 @@ static SV * perl_png_get_cHRM (perl_libpng_t * png)
 static void perl_png_set_cHRM (perl_libpng_t * png, HV * cHRM)
 {
     SV ** key_sv_ptr;
-#line 2225 "perl-libpng.c"
+#line 2234 "perl-libpng.c"
     double white_x = 0.0;
     double white_y = 0.0;
     double red_x = 0.0;
@@ -2263,9 +2272,9 @@ static void perl_png_set_cHRM (perl_libpng_t * png, HV * cHRM)
     if (key_sv_ptr) {
         blue_y = SvNV (* key_sv_ptr);
     }
-#line 2180 "perl-libpng.c.tmpl"
+#line 2196 "perl-libpng.c.tmpl"
     png_set_cHRM (pngi, white_x, white_y, red_x, red_y, green_x, green_y, blue_x, blue_y);
-#line 2183 "perl-libpng.c.tmpl"
+#line 2199 "perl-libpng.c.tmpl"
 }
 
 static void perl_png_set_transforms (perl_libpng_t * png, int transforms)

@@ -9,7 +9,8 @@ $png->read_png ();
 close $file;
 # Get all valid chunks
 my $valid = $png->get_valid ();
-print "Valid chunks are ", join (", ", sort keys %$valid), "\n";
+my @valid_chunks = sort grep {$valid->{$_}} keys %$valid;
+print "Valid chunks are ", join (", ", @valid_chunks), "\n";
 # Print image information
 my $header = $png->get_IHDR ();
 for my $k (keys %$header) {

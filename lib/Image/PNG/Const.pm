@@ -1,5 +1,5 @@
 package Image::PNG::Const;
-our $VERSION = '0.28_05';
+our $VERSION = '0.28_06';
 
 require Exporter;
 @ISA = qw(Exporter);

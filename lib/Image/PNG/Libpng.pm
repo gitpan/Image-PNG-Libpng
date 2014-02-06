@@ -31,7 +31,6 @@ our @EXPORT_OK = qw/
 	get_row_pointers
 	get_rows
 	get_rowbytes
-	get_channels
 	get_valid
 	set_tRNS_pointer
 	set_rows
@@ -97,7 +96,7 @@ our %EXPORT_TAGS = (
 );
 
 require XSLoader;
-our $VERSION = '0.28_06';
+our $VERSION = '0.28_07';
 
 XSLoader::load('Image::PNG::Libpng', $VERSION);
 
@@ -216,8 +215,11 @@ sub set_chunk
 
 sub copy_png
 {
-    my ($png) = @_;
+    my ($png, %options) = @_;
     my $opng = create_write_struct ();
+    if ($options{verbosity}) {
+	$opng->set_verbosity ($options{verbosity});
+    }
     my $valid = $png->get_valid ();
     $opng->set_IHDR ($png->get_IHDR ());
     for my $chunk (keys %$valid) {
@@ -234,6 +236,19 @@ sub copy_png
     }
     return $opng;
 }
+
+
+sub width
+{
+    goto & get_image_width;
+}
+
+sub height
+{
+    goto & get_image_height;
+}
+
+
 
 1;
 

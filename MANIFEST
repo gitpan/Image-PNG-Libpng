@@ -24,6 +24,7 @@ t/bKGD.t
 t/bogus.t
 t/cHRM.t
 t/Const.t
+t/functions.t
 t/gAMA.t
 t/get-internals.t
 t/get-text.t
@@ -212,10 +213,10 @@ t/PLTE.t
 t/saru-fs8.png
 t/sCAL.t
 t/set-text.t
+t/sPLT.t
 t/supports.t
 t/tantei-san.png
 t/test.png
-t/text.t
 t/tIME.t
 t/tRNS.t
 typemap

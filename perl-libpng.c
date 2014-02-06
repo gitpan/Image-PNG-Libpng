@@ -1,4 +1,4 @@
-#line 2 "perl-libpng.c.tmpl"
+#line 2 "tmpl/perl-libpng.c.tmpl"
 
 #ifndef PNG_FLOATING_POINT_SUPPORTED
 #  error libpng support requires libpng to export the floating point APIs
@@ -1095,26 +1095,17 @@ const char * perl_png_text_compression_name (int text_compression)
                                
 
 
-/* Return an array of hashes containing the colour values of the palette. */
+/* This is a helper for get_PLTE. */
 
-static SV *
-perl_png_get_PLTE (perl_libpng_t * png)
+static AV *
+perl_png_colours_to_av (png_colorp colours, int n_colours)
 {
-    png_colorp colours;
-    int n_colours;
-    png_uint_32 status;
     int i;
     AV * perl_colours;
-
-    status = png_get_PLTE (pngi, & colours, & n_colours);
-    if (status != PNG_INFO_PLTE) {
-        UNDEF;
-    }
     perl_colours = newAV ();
     for (i = 0; i < n_colours; i++) {
         HV * palette_entry;
 
-        MESSAGE ("Palette entry %d\n", i);
         palette_entry = newHV ();
 #define PERL_PNG_STORE_COLOUR(x)                        \
         (void) hv_store (palette_entry,                 \
@@ -1126,6 +1117,24 @@ perl_png_get_PLTE (perl_libpng_t * png)
 #undef PERL_PNG_STORE_COLOUR
         av_push (perl_colours, newRV ((SV *) palette_entry));
     }
+    return perl_colours;
+}
+
+/* Return an array of hashes containing the colour values of the palette. */
+
+static SV *
+perl_png_get_PLTE (perl_libpng_t * png)
+{
+    png_colorp colours;
+    int n_colours;
+    png_uint_32 status;
+    AV * perl_colours;
+
+    status = png_get_PLTE (pngi, & colours, & n_colours);
+    if (status != PNG_INFO_PLTE) {
+        UNDEF;
+    }
+    perl_colours = perl_png_colours_to_av (colours, n_colours);
     return newRV_inc ((SV *) perl_colours);
 }
 
@@ -1277,6 +1286,7 @@ static SV * perl_png_get_pCAL (perl_libpng_t * png)
 	AV * params;
 	int i;
 	params = newAV ();
+	/* Looks like a memory leak here. */
 	GET_MEMORY (png_params, n_params, char *);
 	for (i = 0; i < n_params; i++) {
 	    ARRAY_STORE_PV (params, png_params[i]);
@@ -1422,22 +1432,154 @@ static void perl_png_set_tRNS (perl_libpng_t * png, HV * tRNS)
 {
 }
 
-/* Get the sPLT chunk of a PNG image. This currently does nothing. */
+static HV *
+perl_png_spalette_to_hv (png_sPLT_tp spalette)
+{
+    HV * perl_spalette;
+    AV * entries;
+    int nentries;
+    int i;
+    perl_spalette = newHV ();
+    HASH_STORE_PV_MEMBER (perl_spalette, name, spalette);
+    HASH_STORE_IV_MEMBER (perl_spalette, depth, spalette);
+    nentries = spalette->nentries;
+    HASH_STORE_IV (perl_spalette, nentries);
+    entries = newAV ();
+    for (i = 0; i < nentries; i++) {
+	HV * perl_entry;
+	png_sPLT_entry * entry;
+	entry = spalette->entries + i;
+	perl_entry = newHV ();
+#line 1453 "perl-libpng.c"
+		HASH_STORE_IV_MEMBER (perl_entry, red, entry);
+		HASH_STORE_IV_MEMBER (perl_entry, green, entry);
+		HASH_STORE_IV_MEMBER (perl_entry, blue, entry);
+		HASH_STORE_IV_MEMBER (perl_entry, alpha, entry);
+		HASH_STORE_IV_MEMBER (perl_entry, frequency, entry);
+	
+#line 1458 "tmpl/perl-libpng.c.tmpl"
+	av_push (entries, newRV_inc ((SV *) perl_entry));
+    }
+    HASH_STORE_AV (perl_spalette, entries);
+    return perl_spalette;
+}
+
+/* Get the sPLT chunk(s) of a PNG image. */
 
 static SV * perl_png_get_sPLT (perl_libpng_t * png)
 {
-    if (VALID (sPLT)) {
-        HV * ice;
-        ice = newHV ();
-        return newRV_inc ((SV *) ice);
+#ifdef PNG_sPLT_SUPPORTED
+    if (! VALID (sPLT)) {
+	UNDEF;
     }
+    png_sPLT_tp spalettes;
+    int num_spalettes;
+    AV * perl_spalettes;
+    int i;
+
+    num_spalettes = png_get_sPLT (pngi, & spalettes);
+    MESSAGE ("Got %d suggested palettes", num_spalettes);
+    if (num_spalettes == 0) {
+	UNDEF;
+    }
+    perl_spalettes = newAV ();
+    for (i = 0; i < num_spalettes; i++) {
+	png_sPLT_tp spalette;
+	HV * perl_spalette;
+
+	spalette = spalettes + i;
+	MESSAGE ("Getting suggested palette %d", i);
+	perl_spalette = perl_png_spalette_to_hv (spalette);
+	av_push (perl_spalettes, newRV ((SV *) perl_spalette));
+    }
+    return newRV_inc ((SV *) perl_spalettes);
+#else
+    UNSUPPORTED (sPLT);
     UNDEF;
+#endif /* PNG_sPLT_SUPPORTED */
 }
 
-/* Set the sPLT chunk of a PNG image. This currently does nothing. */
+/* Set an sPLT chunk(s) of a PNG image. */
 
-static void perl_png_set_sPLT (perl_libpng_t * png, HV * sPLT)
+static void perl_png_set_sPLT (perl_libpng_t * png, AV * sPLT_entries)
 {
+#ifdef PNG_sPLT_SUPPORTED
+    int i;
+    int num_spalettes;
+    png_sPLT_tp entries;
+    unsigned name_length;
+
+    num_spalettes = av_len (sPLT_entries) + 1;
+    MESSAGE ("There are %d palettes", num_spalettes);
+    if (num_spalettes == 0) {
+	return;
+    }
+    GET_MEMORY (entries, num_spalettes, png_sPLT_t);
+    for (i = 0; i < num_spalettes; i++) {
+	png_sPLT_t * entry;
+	HV * perl_spalette;
+	SV ** sv;
+	AV * perl_entries;
+	int nentries;
+	int j;
+	entry = entries + i;
+	MESSAGE ("Copying palette %d", i);
+	sv = av_fetch (sPLT_entries, i, 0);
+	if (SvOK (* sv) && SvROK (* sv) && SvTYPE (SvRV (* sv)) == SVt_PVHV) {
+	    perl_spalette = (HV *) SvRV (* sv);
+	}
+	else {
+	    perl_png_warn (png, "Not a hash reference at position %d", i);
+	    continue;
+	}
+	HASH_FETCH_PV_MEMBER (perl_spalette, name, entry);
+	HASH_FETCH_IV_MEMBER (perl_spalette, depth, entry);
+	MESSAGE ("name = %s depth = %d", entry->name, entry->depth);
+	sv = hv_fetch (perl_spalette, "entries", strlen ("entries"), 0);
+	if (SvOK (* sv) && SvROK (* sv) && SvTYPE (SvRV (* sv)) == SVt_PVAV) {
+	    perl_entries = (AV *) SvRV (* sv);
+	}
+	else {
+	    perl_png_warn (png, "Could not get entries at position %d", i);
+	    continue;
+	}
+	nentries = av_len (perl_entries) + 1;
+	entry->nentries = nentries;
+	GET_MEMORY (entry->entries, nentries, png_sPLT_entry);
+	MESSAGE ("Copying %d entries", nentries);
+	for (j = 0; j < nentries; j++) {
+	    png_sPLT_entry * e;
+	    HV * perl_entry;
+	    sv = av_fetch (perl_entries, j, 0);
+	    if (SvOK (* sv) && SvROK (* sv) &&
+		SvTYPE (SvRV (* sv)) == SVt_PVHV) {
+		perl_entry = (HV *) SvRV (* sv);
+	    }
+	    else {
+		perl_png_warn (png, "Could not get entry %d", j);
+		continue;
+	    }
+	    MESSAGE ("Copying entry %d", j);
+	    e = entry->entries + j;
+#line 1564 "perl-libpng.c"
+ 	    	    HASH_FETCH_IV_MEMBER (perl_entry, red, e);
+	    	    HASH_FETCH_IV_MEMBER (perl_entry, green, e);
+	    	    HASH_FETCH_IV_MEMBER (perl_entry, blue, e);
+	    	    HASH_FETCH_IV_MEMBER (perl_entry, alpha, e);
+	    	    HASH_FETCH_IV_MEMBER (perl_entry, frequency, e);
+	    
+#line 1566 "tmpl/perl-libpng.c.tmpl"
+	}
+    }
+    MESSAGE ("Setting the entries");
+    png_set_sPLT (pngi, entries, num_spalettes);
+    for (i = 0; i < num_spalettes; i++) {
+	PERL_PNG_FREE (entries[i].entries);
+    }
+    PERL_PNG_FREE (entries);
+#else
+    UNSUPPORTED (sPLT);
+#endif /* PNG_sPLT_SUPPORTED */
 }
 
 static SV * perl_png_get_sCAL (perl_libpng_t * png)
@@ -1532,7 +1674,19 @@ static SV * perl_png_get_sBIT (perl_libpng_t * png)
         HV * sig_bit;
         png_color_8 colours = {0};
         sig_bit = newHV ();
-         HASH_STORE_IV_MEMBER (sig_bit, red, colours); HASH_STORE_IV_MEMBER (sig_bit, green, colours); HASH_STORE_IV_MEMBER (sig_bit, blue, colours); HASH_STORE_IV_MEMBER (sig_bit, gray, colours); HASH_STORE_IV_MEMBER (sig_bit, alpha, colours);
+#line 1677 "perl-libpng.c"
+        
+	HASH_STORE_IV_MEMBER (sig_bit, red, (& colours));
+	
+	HASH_STORE_IV_MEMBER (sig_bit, green, (& colours));
+	
+	HASH_STORE_IV_MEMBER (sig_bit, blue, (& colours));
+	
+	HASH_STORE_IV_MEMBER (sig_bit, gray, (& colours));
+	
+	HASH_STORE_IV_MEMBER (sig_bit, alpha, (& colours));
+	
+#line 1676 "tmpl/perl-libpng.c.tmpl"
         return newRV_inc ((SV *) sig_bit);
     }
     UNDEF;
@@ -1665,9 +1819,9 @@ static SV * perl_png_get_valid (perl_libpng_t * png)
     valid = png_get_valid (pngi, 0xFFFFFFFF);
 #define V(x) \
     (void) hv_store (perl_valid, #x, strlen (#x), newSViv (valid & PNG_INFO_ ## x), 0)
-#line 1668 "perl-libpng.c"
+#line 1822 "perl-libpng.c"
 V(bKGD);V(cHRM);V(gAMA);V(hIST);V(iCCP);V(IDAT);V(oFFs);V(pCAL);V(pHYs);V(PLTE);V(sBIT);V(sCAL);V(sPLT);V(sRGB);V(tIME);V(tRNS);
-#line 1671 "perl-libpng.c.tmpl"
+#line 1811 "tmpl/perl-libpng.c.tmpl"
 #undef V
 
     return newRV_inc ((SV *) perl_valid);
@@ -1828,7 +1982,7 @@ static void perl_png_set_rows (perl_libpng_t * png, AV * rows)
         SV * row_i;
         row_i = * av_fetch (rows, i, 0);
         row_pointers[i] = (unsigned char *) SvPV (row_i, length);
-        MESSAGE ("%d %d\n", i, length);
+        MESSAGE ("Copying row %d length %d\n", i, length);
     }
     png_set_rows (pngi, row_pointers);
     /* "png" keeps a record of the allocated memory in order to free
@@ -2043,7 +2197,7 @@ static void perl_png_set_unknown_chunks (perl_libpng_t * png, AV * chunk_list)
 
 int perl_png_libpng_supports (const char * what)
 {
-#line 2046 "perl-libpng.c"
+#line 2200 "perl-libpng.c"
     if (strcmp (what, "iTXt") == 0) {
 #ifdef PNG_iTXt_SUPPORTED
         return 1;
@@ -2086,7 +2240,14 @@ int perl_png_libpng_supports (const char * what)
         return 0;
 #endif /* iCCP */
     }
-#line 2057 "perl-libpng.c.tmpl"
+    if (strcmp (what, "sPLT") == 0) {
+#ifdef PNG_sPLT_SUPPORTED
+        return 1;
+#else
+        return 0;
+#endif /* sPLT */
+    }
+#line 2197 "tmpl/perl-libpng.c.tmpl"
 
     /* sCAL is a special case. */
 
@@ -2203,7 +2364,7 @@ static SV * perl_png_get_cHRM (perl_libpng_t * png)
 {
     if (VALID (cHRM)) {
         HV * ice;
-#line 2206 "perl-libpng.c"
+#line 2367 "perl-libpng.c"
         double white_x;
         double white_y;
         double red_x;
@@ -2212,10 +2373,10 @@ static SV * perl_png_get_cHRM (perl_libpng_t * png)
         double green_y;
         double blue_x;
         double blue_y;
-#line 2178 "perl-libpng.c.tmpl"
+#line 2318 "tmpl/perl-libpng.c.tmpl"
         png_get_cHRM (pngi , & white_x, & white_y, & red_x, & red_y, & green_x, & green_y, & blue_x, & blue_y);
         ice = newHV ();
-#line 2218 "perl-libpng.c"
+#line 2379 "perl-libpng.c"
         (void) hv_store (ice, "white_x", strlen ("white_x"),
                          newSVnv (white_x), 0);
         (void) hv_store (ice, "white_y", strlen ("white_y"),
@@ -2232,7 +2393,7 @@ static SV * perl_png_get_cHRM (perl_libpng_t * png)
                          newSVnv (blue_x), 0);
         (void) hv_store (ice, "blue_y", strlen ("blue_y"),
                          newSVnv (blue_y), 0);
-#line 2187 "perl-libpng.c.tmpl"
+#line 2327 "tmpl/perl-libpng.c.tmpl"
         return newRV_inc ((SV *) ice);
     }
     UNDEF;
@@ -2241,7 +2402,7 @@ static SV * perl_png_get_cHRM (perl_libpng_t * png)
 static void perl_png_set_cHRM (perl_libpng_t * png, HV * cHRM)
 {
     SV ** key_sv_ptr;
-#line 2244 "perl-libpng.c"
+#line 2405 "perl-libpng.c"
     double white_x = 0.0;
     double white_y = 0.0;
     double red_x = 0.0;
@@ -2282,9 +2443,9 @@ static void perl_png_set_cHRM (perl_libpng_t * png, HV * cHRM)
     if (key_sv_ptr) {
         blue_y = SvNV (* key_sv_ptr);
     }
-#line 2206 "perl-libpng.c.tmpl"
+#line 2346 "tmpl/perl-libpng.c.tmpl"
     png_set_cHRM (pngi, white_x, white_y, red_x, red_y, green_x, green_y, blue_x, blue_y);
-#line 2209 "perl-libpng.c.tmpl"
+#line 2349 "tmpl/perl-libpng.c.tmpl"
 }
 
 static void perl_png_set_transforms (perl_libpng_t * png, int transforms)
@@ -2313,6 +2474,38 @@ static void perl_png_copy_row_pointers (perl_libpng_t * png, SV * row_pointers)
     }
     png_set_rows (pngi, png->row_pointers);
 }
+
+#line 2478 "perl-libpng.c"
+
+static int
+perl_png_get_image_width (perl_libpng_t * png)
+{
+    return png_get_image_width (pngi);
+}
+
+static int
+perl_png_get_image_height (perl_libpng_t * png)
+{
+    return png_get_image_height (pngi);
+}
+
+#line 2387 "tmpl/perl-libpng.c.tmpl"
+
+/*
+static void
+perl_png_set_rgb_to_gray (perl_libpng_t * png,)
+{
+    png_set_rgb_to_gray (png->png, );
+}
+*/
+
+static int
+perl_png_get_channels (perl_libpng_t * png)
+{
+    return png_get_channels (pngi);
+}
+
+#undef pngi
 
 /*
    Local Variables:

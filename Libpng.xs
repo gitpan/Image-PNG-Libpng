@@ -173,14 +173,6 @@ int perl_png_get_rowbytes (Png)
         RETVAL
 
 
-int perl_png_get_channels (Png)
-        Image::PNG::Libpng Png
-        CODE:
-        RETVAL = png_get_channels (Png->png, Png->info);
-        OUTPUT:
-        RETVAL
-
-
 SV * perl_png_get_valid (Png)
         Image::PNG::Libpng Png
         CODE:
@@ -512,7 +504,7 @@ SV * perl_png_get_sPLT (Png)
 
 void perl_png_set_sPLT (Png, sPLT)
         Image::PNG::Libpng Png
-        HV * sPLT
+        AV * sPLT
         CODE:
         perl_png_set_sPLT (Png, sPLT);
         OUTPUT:
@@ -580,3 +572,47 @@ void perl_png_copy_row_pointers (Png, row_pointers)
 CODE:
 	perl_png_copy_row_pointers (Png, row_pointers);
 OUTPUT:
+
+
+int
+perl_png_get_image_width (Png)
+	Image::PNG::Libpng Png;
+CODE: 
+    	RETVAL = perl_png_get_image_width (Png);
+OUTPUT:
+	RETVAL
+
+int
+perl_png_get_image_height (Png)
+	Image::PNG::Libpng Png;
+CODE: 
+    	RETVAL = perl_png_get_image_height (Png);
+OUTPUT:
+	RETVAL
+
+
+
+
+int
+perl_png_get_channels (Png)
+	Image::PNG::Libpng Png;
+CODE: 
+    	RETVAL = perl_png_get_channels (Png);
+OUTPUT:
+	RETVAL
+
+int
+perl_png_get_bit_depth (Png)
+	Image::PNG::Libpng Png;
+CODE: 
+    	RETVAL = png_get_bit_depth (Png->png, Png->info);
+OUTPUT:
+	RETVAL
+
+int
+perl_png_get_interlace_type (Png)
+	Image::PNG::Libpng Png;
+CODE: 
+    	RETVAL = png_get_interlace_type (Png->png, Png->info);
+OUTPUT:
+	RETVAL

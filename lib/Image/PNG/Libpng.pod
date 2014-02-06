@@ -33,7 +33,7 @@ This example is in F<examples/synopsis.pl> in the distribution.
 
 =begin html
 
-(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.28_06/examples/synopsis.pl">Download  "synopsis.pl" here</a>.)
+(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.28_07/examples/synopsis.pl">Download  "synopsis.pl" here</a>.)
 
 =end html
 
@@ -124,7 +124,7 @@ This example is in F<examples/get-www-png.pl> in the distribution.
 
 =begin html
 
-(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.28_06/examples/get-www-png.pl">Download  "get-www-png.pl" here</a>.)
+(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.28_07/examples/get-www-png.pl">Download  "get-www-png.pl" here</a>.)
 
 =end html
 
@@ -165,7 +165,7 @@ This example is in F<examples/png-cgi.pl> in the distribution.
 
 =begin html
 
-(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.28_06/examples/png-cgi.pl">Download  "png-cgi.pl" here</a>.)
+(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.28_07/examples/png-cgi.pl">Download  "png-cgi.pl" here</a>.)
 
 =end html
 
@@ -678,7 +678,7 @@ This example is in F<examples/color-type-name.pl> in the distribution.
 
 =begin html
 
-(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.28_06/examples/color-type-name.pl">Download  "color-type-name.pl" here</a>.)
+(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.28_07/examples/color-type-name.pl">Download  "color-type-name.pl" here</a>.)
 
 =end html
 
@@ -690,6 +690,90 @@ B<Correspondence to libpng:>
 This function does not correspond to anything in libpng. The names of
 the colour types are taken from those defined in the libpng header
 file, C<png.h>.
+
+
+
+=head2 get_image_width
+
+    my $width = $png->get_image_width ();
+
+Get the image's width from the header.
+
+
+
+B<Correspondence to libpng:> 
+
+This function corresponds to C<png_get_image_>
+
+=head2 width
+
+    my $width = $png->width ();
+
+Alias for get_image_width. This is not exported, it's intended for use
+with the object only.
+
+
+
+=head2 get_image_height
+
+    my $height = $png->get_image_height ();
+
+Get the image's height from the header.
+
+
+
+B<Correspondence to libpng:> 
+
+This function corresponds to C<png_get_image_>
+
+=head2 height
+
+    my $height = $png->height ();
+
+Alias for get_image_height. This is not exported, it's intended for use
+with the object only.
+
+
+
+=head2 get_channels
+
+    my $channels = $png->get_channels ();
+
+Get the number of channels, from one to four. The return value is 1
+for colour type PNG_COLOR_TYPE_GRAY and PNG_COLOR_TYPE_PALETTE, 2 for
+PNG_COLOR_TYPE_GRAY_ALPHA, 3 for PNG_COLOR_TYPE_RGB and 4 for
+PNG_COLOR_TYPE_RGB_ALPHA or PNG_COLOR_TYPE_RGB with a filler byte.
+
+
+
+B<Correspondence to libpng:> 
+
+This function corresponds to C<png_get_channels>
+
+=head2 get_bit_depth
+
+    my $bit_depth = $png->get_bit_depth ();
+
+Get the bit depth, the number of bits for one channel of one pixel.
+
+
+
+B<Correspondence to libpng:> 
+
+This function corresponds to C<png_get_bit_depth>
+
+=head2 get_interlace_type
+
+    my $interlace_type = $png->get_interlace_type ();
+
+Get the interlace type. This is either PNG_INTERLACE_NONE or
+PNG_INTERLACE_ADAM7.
+
+
+
+B<Correspondence to libpng:> 
+
+This function corresponds to C<png_get_interlace_type>
 
 =head1 Image data
 
@@ -1672,6 +1756,54 @@ This function corresponds to C<png_set_sCAL_s>. Note that this uses the C<set_sC
 function rather than C<set_sCAL> and the input values are the strings
 themselves rather than numbers.
 
+=head2 sPLT
+
+See L<http://www.w3.org/TR/PNG/#11sPLT>  of the PNG specification.
+
+=head3 get_sPLT
+
+Provisionally, see L</set_sPLT> for documentation, the return value is
+like the input of that.
+
+=head3 set_sPLT
+
+    $png->set_sPLT ([{ name => 'palette', depth => 8, entries => [{red => 1, blue => 2},]}]);
+
+Set suggested palettes. The input is an array reference containing hash references with the following fields:
+
+=over
+
+=item name
+
+The name of the suggested palette.
+
+=item depth
+
+The depth of the suggested palette.
+
+=item entries
+
+The entries of the palette. This is an array reference containing hash references with keys as follows:
+
+=over
+
+=item red
+
+=item blue
+
+=item green
+
+=item frequency
+
+=item alpha
+
+=back
+
+=back
+
+The field C<nentries> which is returned by L</get_sPLT> does not need
+to be specified, it is calculated from the length of C<entries>.
+
 =head1 UNIMPLEMENTED CHUNKS
 
 These chunks have skeleton routines but the actual reading and writing
@@ -1686,18 +1818,6 @@ See L<http://www.w3.org/TR/PNG/#11tRNS>  of the PNG specification.
 Not implemented.
 
 =head3 set_tRNS
-
-Not implemented.
-
-=head2 sPLT
-
-See L<http://www.w3.org/TR/PNG/#11sPLT>  of the PNG specification.
-
-=head3 get_sPLT
-
-Not implemented.
-
-=head3 set_sPLT
 
 Not implemented.
 
@@ -1742,6 +1862,10 @@ libpng.
 
 Does the libpng support the L</pCAL> extension?
 
+=item sPLT
+
+Does the libpng support L<sPLT> chunks?
+
 =item UNKNOWN_CHUNKS
 
 Does the libpng support unknown chunks (see L<Private chunks>)?
@@ -1774,7 +1898,7 @@ B<Correspondence to libpng:>
 
 This function corresponds to C<png_set_packing>
 
-=head2 set_packing
+=head2 set_strip_16
 
     $png->set_strip_16 ();
 
@@ -1794,6 +1918,16 @@ B<Correspondence to libpng:>
 
 This function corresponds to C<png_set_expand>
 
+=head2 set_gray_to_rgb
+
+    $png->set_gray_to_rgb ();
+
+
+
+B<Correspondence to libpng:> 
+
+This function corresponds to C<png_set_gray_to_rgb>
+
 =head2 get_tRNS_palette
 
     $png->get_tRNS_palette ();
@@ -1805,16 +1939,6 @@ This is not a libpng-equivalent function.
     $png->set_PLTE_pointer ();
 
 This is not a libpng-equivalent function.
-
-=head2 set_gray_to_rgb
-
-    $png->set_gray_to_rgb ();
-
-
-
-B<Correspondence to libpng:> 
-
-This function corresponds to C<png_set_gray_to_rgb>
 
 =head1 ACCESS FUNCTIONS
 
@@ -1906,7 +2030,7 @@ instances of unevaluated arguments, which have all been eliminated
 from this module.
 
 If you are interested in exactly which libpng arguments are omitted,
-you can find each instance L<in the file C<perl-libpng.c> in the top directory of the distribution|http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.28_06/perl-libpng.c> in the macro
+you can find each instance L<in the file C<perl-libpng.c> in the top directory of the distribution|http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.28_07/perl-libpng.c> in the macro
 C<UNUSED_ZERO_ARG>.
 
 =head2 Function return values are used to return values
@@ -1971,6 +2095,10 @@ program's data area between calls. So this module doesn't deal with
 png_write_chunk, png_write_end, png_write_info, png_write_row, or
 png_write_rows.
 
+=item Fixed point functions
+
+There is no support for the PNG fixed point functions in this Perl module.
+
 =item Other unsupported functions
 
 All libpng deprecated functions are not supported.
@@ -2015,11 +2143,25 @@ Other unsupported functions include
 
 =item png_get_filter_type
 
-=item png_get_channels
+=item png_get_io_ptr
 
 =item png_get_signature
 
 =item png_get_progressive_ptr
+
+=item png_get_valid
+
+=item png_get_x_offset_pixels
+
+=item png_get_x_pixels_per_meter
+
+=item png_get_y_offset_pixels
+
+=item png_get_y_pixels_per_meter
+
+=item png_get_user_width_max
+
+=item png_get_user_height_max
 
 =item png_set_filter_heuristics
 
@@ -2029,9 +2171,19 @@ Other unsupported functions include
 
 =item png_set_user_limits
 
-=item png_get_user_width_max
+=item png_set_rgb_to_gray
 
-=item png_get_user_height_max
+=item png_set_swap
+
+=item png_set_packswap
+
+=item png_set_cHRM_XYZ
+
+There is no Z value allowed in L</set_cHRM> at present.
+
+=item png_set_chunk_cache_max
+
+=item png_get_chunk_cache_max
 
 =back
 
@@ -2145,6 +2297,24 @@ The user tried to set a PNG header with unacceptable values, as indicated.
 (F) 
 The user tried to set an empty palette of colours.
 
+
+
+
+=item Not a hash reference at position %d
+
+(W) 
+
+
+
+=item Could not get entries at position %d
+
+(W) 
+
+
+
+=item Could not get entry %d
+
+(W) 
 
 
 

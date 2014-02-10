@@ -92,7 +92,8 @@ typedef perl_libpng_t * Image__PNG__Libpng;
 
 #define UNUSED_ZERO_ARG 0
 
-/* Return an undefined value. */
+/* Return an undefined value. This is also going to raise an error if
+   the user wants it to, but the code is not here yet. */
 
 #define UNDEF {                                 \
         if (png->raise_undefined) {             \
@@ -1450,14 +1451,14 @@ perl_png_spalette_to_hv (png_sPLT_tp spalette)
 	png_sPLT_entry * entry;
 	entry = spalette->entries + i;
 	perl_entry = newHV ();
-#line 1453 "perl-libpng.c"
+#line 1454 "perl-libpng.c"
 		HASH_STORE_IV_MEMBER (perl_entry, red, entry);
 		HASH_STORE_IV_MEMBER (perl_entry, green, entry);
 		HASH_STORE_IV_MEMBER (perl_entry, blue, entry);
 		HASH_STORE_IV_MEMBER (perl_entry, alpha, entry);
 		HASH_STORE_IV_MEMBER (perl_entry, frequency, entry);
 	
-#line 1458 "tmpl/perl-libpng.c.tmpl"
+#line 1459 "tmpl/perl-libpng.c.tmpl"
 	av_push (entries, newRV_inc ((SV *) perl_entry));
     }
     HASH_STORE_AV (perl_spalette, entries);
@@ -1561,14 +1562,14 @@ static void perl_png_set_sPLT (perl_libpng_t * png, AV * sPLT_entries)
 	    }
 	    MESSAGE ("Copying entry %d", j);
 	    e = entry->entries + j;
-#line 1564 "perl-libpng.c"
+#line 1565 "perl-libpng.c"
  	    	    HASH_FETCH_IV_MEMBER (perl_entry, red, e);
 	    	    HASH_FETCH_IV_MEMBER (perl_entry, green, e);
 	    	    HASH_FETCH_IV_MEMBER (perl_entry, blue, e);
 	    	    HASH_FETCH_IV_MEMBER (perl_entry, alpha, e);
 	    	    HASH_FETCH_IV_MEMBER (perl_entry, frequency, e);
 	    
-#line 1566 "tmpl/perl-libpng.c.tmpl"
+#line 1567 "tmpl/perl-libpng.c.tmpl"
 	}
     }
     MESSAGE ("Setting the entries");
@@ -1674,7 +1675,7 @@ static SV * perl_png_get_sBIT (perl_libpng_t * png)
         HV * sig_bit;
         png_color_8 colours = {0};
         sig_bit = newHV ();
-#line 1677 "perl-libpng.c"
+#line 1678 "perl-libpng.c"
         
 	HASH_STORE_IV_MEMBER (sig_bit, red, (& colours));
 	
@@ -1686,7 +1687,7 @@ static SV * perl_png_get_sBIT (perl_libpng_t * png)
 	
 	HASH_STORE_IV_MEMBER (sig_bit, alpha, (& colours));
 	
-#line 1676 "tmpl/perl-libpng.c.tmpl"
+#line 1677 "tmpl/perl-libpng.c.tmpl"
         return newRV_inc ((SV *) sig_bit);
     }
     UNDEF;
@@ -1819,9 +1820,9 @@ static SV * perl_png_get_valid (perl_libpng_t * png)
     valid = png_get_valid (pngi, 0xFFFFFFFF);
 #define V(x) \
     (void) hv_store (perl_valid, #x, strlen (#x), newSViv (valid & PNG_INFO_ ## x), 0)
-#line 1822 "perl-libpng.c"
+#line 1823 "perl-libpng.c"
 V(bKGD);V(cHRM);V(gAMA);V(hIST);V(iCCP);V(IDAT);V(oFFs);V(pCAL);V(pHYs);V(PLTE);V(sBIT);V(sCAL);V(sPLT);V(sRGB);V(tIME);V(tRNS);
-#line 1811 "tmpl/perl-libpng.c.tmpl"
+#line 1812 "tmpl/perl-libpng.c.tmpl"
 #undef V
 
     return newRV_inc ((SV *) perl_valid);
@@ -2197,7 +2198,7 @@ static void perl_png_set_unknown_chunks (perl_libpng_t * png, AV * chunk_list)
 
 int perl_png_libpng_supports (const char * what)
 {
-#line 2200 "perl-libpng.c"
+#line 2201 "perl-libpng.c"
     if (strcmp (what, "iTXt") == 0) {
 #ifdef PNG_iTXt_SUPPORTED
         return 1;
@@ -2247,7 +2248,14 @@ int perl_png_libpng_supports (const char * what)
         return 0;
 #endif /* sPLT */
     }
-#line 2197 "tmpl/perl-libpng.c.tmpl"
+    if (strcmp (what, "USER_LIMITS") == 0) {
+#ifdef PNG_USER_LIMITS_SUPPORTED
+        return 1;
+#else
+        return 0;
+#endif /* USER_LIMITS */
+    }
+#line 2199 "tmpl/perl-libpng.c.tmpl"
 
     /* sCAL is a special case. */
 
@@ -2364,7 +2372,7 @@ static SV * perl_png_get_cHRM (perl_libpng_t * png)
 {
     if (VALID (cHRM)) {
         HV * ice;
-#line 2367 "perl-libpng.c"
+#line 2375 "perl-libpng.c"
         double white_x;
         double white_y;
         double red_x;
@@ -2373,10 +2381,10 @@ static SV * perl_png_get_cHRM (perl_libpng_t * png)
         double green_y;
         double blue_x;
         double blue_y;
-#line 2318 "tmpl/perl-libpng.c.tmpl"
+#line 2320 "tmpl/perl-libpng.c.tmpl"
         png_get_cHRM (pngi , & white_x, & white_y, & red_x, & red_y, & green_x, & green_y, & blue_x, & blue_y);
         ice = newHV ();
-#line 2379 "perl-libpng.c"
+#line 2387 "perl-libpng.c"
         (void) hv_store (ice, "white_x", strlen ("white_x"),
                          newSVnv (white_x), 0);
         (void) hv_store (ice, "white_y", strlen ("white_y"),
@@ -2393,7 +2401,7 @@ static SV * perl_png_get_cHRM (perl_libpng_t * png)
                          newSVnv (blue_x), 0);
         (void) hv_store (ice, "blue_y", strlen ("blue_y"),
                          newSVnv (blue_y), 0);
-#line 2327 "tmpl/perl-libpng.c.tmpl"
+#line 2329 "tmpl/perl-libpng.c.tmpl"
         return newRV_inc ((SV *) ice);
     }
     UNDEF;
@@ -2402,7 +2410,7 @@ static SV * perl_png_get_cHRM (perl_libpng_t * png)
 static void perl_png_set_cHRM (perl_libpng_t * png, HV * cHRM)
 {
     SV ** key_sv_ptr;
-#line 2405 "perl-libpng.c"
+#line 2413 "perl-libpng.c"
     double white_x = 0.0;
     double white_y = 0.0;
     double red_x = 0.0;
@@ -2443,9 +2451,9 @@ static void perl_png_set_cHRM (perl_libpng_t * png, HV * cHRM)
     if (key_sv_ptr) {
         blue_y = SvNV (* key_sv_ptr);
     }
-#line 2346 "tmpl/perl-libpng.c.tmpl"
+#line 2348 "tmpl/perl-libpng.c.tmpl"
     png_set_cHRM (pngi, white_x, white_y, red_x, red_y, green_x, green_y, blue_x, blue_y);
-#line 2349 "tmpl/perl-libpng.c.tmpl"
+#line 2351 "tmpl/perl-libpng.c.tmpl"
 }
 
 static void perl_png_set_transforms (perl_libpng_t * png, int transforms)
@@ -2475,7 +2483,7 @@ static void perl_png_copy_row_pointers (perl_libpng_t * png, SV * row_pointers)
     png_set_rows (pngi, png->row_pointers);
 }
 
-#line 2478 "perl-libpng.c"
+#line 2486 "perl-libpng.c"
 
 static int
 perl_png_get_image_width (perl_libpng_t * png)
@@ -2489,7 +2497,7 @@ perl_png_get_image_height (perl_libpng_t * png)
     return png_get_image_height (pngi);
 }
 
-#line 2387 "tmpl/perl-libpng.c.tmpl"
+#line 2389 "tmpl/perl-libpng.c.tmpl"
 
 /*
 static void
@@ -2504,6 +2512,48 @@ perl_png_get_channels (perl_libpng_t * png)
 {
     return png_get_channels (pngi);
 }
+
+static void
+perl_png_set_user_limits (perl_libpng_t * png,
+			  unsigned int user_width_max,
+			  unsigned int user_height_max)
+{
+#ifdef PNG_USER_LIMITS_SUPPORTED
+    png_set_user_limits (png->png, user_width_max, user_height_max);
+#else
+    UNSUPPORTED (USER_LIMITS);
+#endif
+}
+
+
+static SV *
+perl_png_get_user_width_max (perl_libpng_t * png)
+{
+#ifdef PNG_USER_LIMITS_SUPPORTED
+    int uwm;
+
+    uwm = png_get_user_width_max (png->png);
+    return newSViv (uwm);
+#else
+    UNSUPPORTED (USER_LIMITS);
+    UNDEF;
+#endif
+}
+
+static SV *
+perl_png_get_user_height_max (perl_libpng_t * png)
+{
+#ifdef PNG_USER_LIMITS_SUPPORTED
+    int uwm;
+
+    uwm = png_get_user_height_max (png->png);
+    return newSViv (uwm);
+#else
+    UNSUPPORTED (USER_LIMITS);
+    UNDEF;
+#endif
+}
+
 
 #undef pngi
 

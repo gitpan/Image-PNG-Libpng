@@ -33,7 +33,7 @@ This example is in F<examples/synopsis.pl> in the distribution.
 
 =begin html
 
-(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.28_07/examples/synopsis.pl">Download  "synopsis.pl" here</a>.)
+(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.29/examples/synopsis.pl">Download  "synopsis.pl" here</a>.)
 
 =end html
 
@@ -124,7 +124,7 @@ This example is in F<examples/get-www-png.pl> in the distribution.
 
 =begin html
 
-(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.28_07/examples/get-www-png.pl">Download  "get-www-png.pl" here</a>.)
+(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.29/examples/get-www-png.pl">Download  "get-www-png.pl" here</a>.)
 
 =end html
 
@@ -165,7 +165,7 @@ This example is in F<examples/png-cgi.pl> in the distribution.
 
 =begin html
 
-(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.28_07/examples/png-cgi.pl">Download  "png-cgi.pl" here</a>.)
+(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.29/examples/png-cgi.pl">Download  "png-cgi.pl" here</a>.)
 
 =end html
 
@@ -191,9 +191,10 @@ L</set_transforms>.
     my $outpng = $png->copy_png ();
 
 Copy a PNG from a read to a write structure. There are two kinds of
-object in this module, those created by L</create_read_struct> and
-those created by L</create_write_struct>. This just copies all the
-chunks from one to the other.
+object created by this module, "read a png" objects created by
+L</create_read_struct> and "write a png" objects created by
+L</create_write_struct>. This copies all the valid chunks from a read
+structure to a write structure.
 
 
 
@@ -678,7 +679,7 @@ This example is in F<examples/color-type-name.pl> in the distribution.
 
 =begin html
 
-(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.28_07/examples/color-type-name.pl">Download  "color-type-name.pl" here</a>.)
+(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.29/examples/color-type-name.pl">Download  "color-type-name.pl" here</a>.)
 
 =end html
 
@@ -703,7 +704,7 @@ Get the image's width from the header.
 
 B<Correspondence to libpng:> 
 
-This function corresponds to C<png_get_image_>
+This function corresponds to C<png_get_image_width>
 
 =head2 width
 
@@ -724,7 +725,7 @@ Get the image's height from the header.
 
 B<Correspondence to libpng:> 
 
-This function corresponds to C<png_get_image_>
+This function corresponds to C<png_get_image_height>
 
 =head2 height
 
@@ -1238,6 +1239,48 @@ B<Correspondence to libpng:>
 
 This function corresponds to C<png_set_filter> with the second (unused)
 argument omitted. See L<Unused arguments omitted>.
+
+=head2 set_user_limits
+
+    $png->set_user_limits ($width, $height);
+
+
+
+B<Correspondence to libpng:> 
+
+This function corresponds to C<png_set_user_limits>
+
+
+
+=head2 get_user_width_max
+
+    $png->get_user_width_max ();
+
+Get the maximum width the user will allow, as set by
+L</set_user_limits>.
+
+
+
+B<Correspondence to libpng:> 
+
+This function corresponds to C<png_get_user_width_max>
+
+
+
+=head2 get_user_height_max
+
+    $png->get_user_height_max ();
+
+Get the maximum height the user will allow, as set by
+L</set_user_limits>.
+
+
+
+B<Correspondence to libpng:> 
+
+This function corresponds to C<png_get_user_height_max>
+
+
 
 =head1 Other chunks
 
@@ -2030,7 +2073,7 @@ instances of unevaluated arguments, which have all been eliminated
 from this module.
 
 If you are interested in exactly which libpng arguments are omitted,
-you can find each instance L<in the file C<perl-libpng.c> in the top directory of the distribution|http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.28_07/perl-libpng.c> in the macro
+you can find each instance L<in the file C<perl-libpng.c> in the top directory of the distribution|http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.29/perl-libpng.c> in the macro
 C<UNUSED_ZERO_ARG>.
 
 =head2 Function return values are used to return values
@@ -2127,14 +2170,6 @@ Other unsupported functions include
 
 =item png_chunk_benign_error
 
-=item png_get_image_width
-
-=item png_get_image_height
-
-=item png_get_bit_depth
-
-=item png_get_color_type
-
 =item png_get_interlace_type
 
 =item png_get_compression_type
@@ -2149,8 +2184,6 @@ Other unsupported functions include
 
 =item png_get_progressive_ptr
 
-=item png_get_valid
-
 =item png_get_x_offset_pixels
 
 =item png_get_x_pixels_per_meter
@@ -2159,17 +2192,11 @@ Other unsupported functions include
 
 =item png_get_y_pixels_per_meter
 
-=item png_get_user_width_max
-
-=item png_get_user_height_max
-
 =item png_set_filter_heuristics
 
 =item png_set_quantize
 
 =item png_set_tRNS_to_alpha
-
-=item png_set_user_limits
 
 =item png_set_rgb_to_gray
 

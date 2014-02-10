@@ -15,7 +15,7 @@ my $verbose ;
 
 WriteMakefile (
     NAME         => 'Image::PNG::Libpng',
-    VERSION      => '0.28_07',
+    VERSION      => '0.29',
     ABSTRACT     => 'Perl interface to libpng',
     OBJECT       => 'Libpng.o',
     LIBS         => '-lpng',

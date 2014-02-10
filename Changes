@@ -1,4 +1,4 @@
-0.29 2014-02-11
+0.30 2014-02-11
 
 * Support sCAL chunk.
 * use warnings, use strict in main module.

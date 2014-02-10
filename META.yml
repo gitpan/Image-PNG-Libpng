@@ -25,4 +25,4 @@ resources:
   MailingList: http://groups.google.com/group/perlimagepng
   bugtracker: https://github.com/benkasminbullock/image-png-libpng/issues
   repository: https://github.com/benkasminbullock/image-png-libpng
-version: 0.29
+version: 0.30

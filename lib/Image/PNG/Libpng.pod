@@ -33,7 +33,7 @@ This example is in F<examples/synopsis.pl> in the distribution.
 
 =begin html
 
-(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.31/examples/synopsis.pl">Download  "synopsis.pl" here</a>.)
+(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.31_01/examples/synopsis.pl">Download  "synopsis.pl" here</a>.)
 
 =end html
 
@@ -124,7 +124,7 @@ This example is in F<examples/get-www-png.pl> in the distribution.
 
 =begin html
 
-(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.31/examples/get-www-png.pl">Download  "get-www-png.pl" here</a>.)
+(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.31_01/examples/get-www-png.pl">Download  "get-www-png.pl" here</a>.)
 
 =end html
 
@@ -165,7 +165,7 @@ This example is in F<examples/png-cgi.pl> in the distribution.
 
 =begin html
 
-(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.31/examples/png-cgi.pl">Download  "png-cgi.pl" here</a>.)
+(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.31_01/examples/png-cgi.pl">Download  "png-cgi.pl" here</a>.)
 
 =end html
 
@@ -679,7 +679,7 @@ This example is in F<examples/color-type-name.pl> in the distribution.
 
 =begin html
 
-(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.31/examples/color-type-name.pl">Download  "color-type-name.pl" here</a>.)
+(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.31_01/examples/color-type-name.pl">Download  "color-type-name.pl" here</a>.)
 
 =end html
 
@@ -2012,7 +2012,7 @@ like the following:
 	png_info * cinfo;
     CODE:
 	cpng = INT2PTR (png_struct *, SvIV (png));
-	cinfo = INT2PTR (png_info *, SvIV (SvRV (info));
+	cinfo = INT2PTR (png_info *, SvIV (info));
 
 An example exists in L<Image::PNG::Cairo>.    
 
@@ -2072,7 +2072,7 @@ instances of unevaluated arguments, which have all been eliminated
 from this module.
 
 If you are interested in exactly which libpng arguments are omitted,
-you can find each instance L<in the file C<perl-libpng.c> in the top directory of the distribution|http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.31/perl-libpng.c> in the macro
+you can find each instance L<in the file C<perl-libpng.c> in the top directory of the distribution|http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.31_01/perl-libpng.c> in the macro
 C<UNUSED_ZERO_ARG>.
 
 =head2 Function return values are used to return values

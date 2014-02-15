@@ -50,7 +50,6 @@ our @EXPORT_OK = qw/
 	set_sRGB
 	set_packing
 	set_strip_16
-	DESTROY
 	get_internals
 	set_transforms
 	copy_row_pointers
@@ -96,7 +95,7 @@ our %EXPORT_TAGS = (
 );
 
 require XSLoader;
-our $VERSION = '0.31_01';
+our $VERSION = '0.32';
 
 XSLoader::load('Image::PNG::Libpng', $VERSION);
 

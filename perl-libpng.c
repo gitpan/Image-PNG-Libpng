@@ -21,9 +21,11 @@
 #endif /* version or fixed point */
 #endif /* PNG_sCAL_SUPPORTED */
 
-/* Common structure for carrying around all our baggage. */
+/* Container for PNG information. This corresponds to an
+   "Image::PNG::Libpng" in Perl. */
 
-typedef struct perl_libpng {
+typedef struct perl_libpng
+{
     png_structp png;
     png_infop info;
     png_infop end_info;
@@ -1451,14 +1453,14 @@ perl_png_spalette_to_hv (png_sPLT_tp spalette)
 	png_sPLT_entry * entry;
 	entry = spalette->entries + i;
 	perl_entry = newHV ();
-#line 1454 "perl-libpng.c"
+#line 1456 "perl-libpng.c"
 		HASH_STORE_IV_MEMBER (perl_entry, red, entry);
 		HASH_STORE_IV_MEMBER (perl_entry, green, entry);
 		HASH_STORE_IV_MEMBER (perl_entry, blue, entry);
 		HASH_STORE_IV_MEMBER (perl_entry, alpha, entry);
 		HASH_STORE_IV_MEMBER (perl_entry, frequency, entry);
 	
-#line 1459 "perl-libpng.c.tmpl"
+#line 1461 "perl-libpng.c.tmpl"
 	av_push (entries, newRV_inc ((SV *) perl_entry));
     }
     HASH_STORE_AV (perl_spalette, entries);
@@ -1562,14 +1564,14 @@ static void perl_png_set_sPLT (perl_libpng_t * png, AV * sPLT_entries)
 	    }
 	    MESSAGE ("Copying entry %d", j);
 	    e = entry->entries + j;
-#line 1565 "perl-libpng.c"
+#line 1567 "perl-libpng.c"
  	    	    HASH_FETCH_IV_MEMBER (perl_entry, red, e);
 	    	    HASH_FETCH_IV_MEMBER (perl_entry, green, e);
 	    	    HASH_FETCH_IV_MEMBER (perl_entry, blue, e);
 	    	    HASH_FETCH_IV_MEMBER (perl_entry, alpha, e);
 	    	    HASH_FETCH_IV_MEMBER (perl_entry, frequency, e);
 	    
-#line 1567 "perl-libpng.c.tmpl"
+#line 1569 "perl-libpng.c.tmpl"
 	}
     }
     MESSAGE ("Setting the entries");
@@ -1675,7 +1677,7 @@ static SV * perl_png_get_sBIT (perl_libpng_t * png)
         HV * sig_bit;
         png_color_8 colours = {0};
         sig_bit = newHV ();
-#line 1678 "perl-libpng.c"
+#line 1680 "perl-libpng.c"
         
 	HASH_STORE_IV_MEMBER (sig_bit, red, (& colours));
 	
@@ -1687,7 +1689,7 @@ static SV * perl_png_get_sBIT (perl_libpng_t * png)
 	
 	HASH_STORE_IV_MEMBER (sig_bit, alpha, (& colours));
 	
-#line 1677 "perl-libpng.c.tmpl"
+#line 1679 "perl-libpng.c.tmpl"
         return newRV_inc ((SV *) sig_bit);
     }
     UNDEF;
@@ -1820,9 +1822,9 @@ static SV * perl_png_get_valid (perl_libpng_t * png)
     valid = png_get_valid (pngi, 0xFFFFFFFF);
 #define V(x) \
     (void) hv_store (perl_valid, #x, strlen (#x), newSViv (valid & PNG_INFO_ ## x), 0)
-#line 1823 "perl-libpng.c"
+#line 1825 "perl-libpng.c"
 V(bKGD);V(cHRM);V(gAMA);V(hIST);V(iCCP);V(IDAT);V(oFFs);V(pCAL);V(pHYs);V(PLTE);V(sBIT);V(sCAL);V(sPLT);V(sRGB);V(tIME);V(tRNS);
-#line 1812 "perl-libpng.c.tmpl"
+#line 1814 "perl-libpng.c.tmpl"
 #undef V
 
     return newRV_inc ((SV *) perl_valid);
@@ -2198,7 +2200,7 @@ static void perl_png_set_unknown_chunks (perl_libpng_t * png, AV * chunk_list)
 
 int perl_png_libpng_supports (const char * what)
 {
-#line 2201 "perl-libpng.c"
+#line 2203 "perl-libpng.c"
     if (strcmp (what, "iTXt") == 0) {
 #ifdef PNG_iTXt_SUPPORTED
         return 1;
@@ -2255,7 +2257,7 @@ int perl_png_libpng_supports (const char * what)
         return 0;
 #endif /* USER_LIMITS */
     }
-#line 2199 "perl-libpng.c.tmpl"
+#line 2201 "perl-libpng.c.tmpl"
 
     /* sCAL is a special case. */
 
@@ -2372,7 +2374,7 @@ static SV * perl_png_get_cHRM (perl_libpng_t * png)
 {
     if (VALID (cHRM)) {
         HV * ice;
-#line 2375 "perl-libpng.c"
+#line 2377 "perl-libpng.c"
         double white_x;
         double white_y;
         double red_x;
@@ -2381,10 +2383,10 @@ static SV * perl_png_get_cHRM (perl_libpng_t * png)
         double green_y;
         double blue_x;
         double blue_y;
-#line 2320 "perl-libpng.c.tmpl"
+#line 2322 "perl-libpng.c.tmpl"
         png_get_cHRM (pngi , & white_x, & white_y, & red_x, & red_y, & green_x, & green_y, & blue_x, & blue_y);
         ice = newHV ();
-#line 2387 "perl-libpng.c"
+#line 2389 "perl-libpng.c"
         (void) hv_store (ice, "white_x", strlen ("white_x"),
                          newSVnv (white_x), 0);
         (void) hv_store (ice, "white_y", strlen ("white_y"),
@@ -2401,7 +2403,7 @@ static SV * perl_png_get_cHRM (perl_libpng_t * png)
                          newSVnv (blue_x), 0);
         (void) hv_store (ice, "blue_y", strlen ("blue_y"),
                          newSVnv (blue_y), 0);
-#line 2329 "perl-libpng.c.tmpl"
+#line 2331 "perl-libpng.c.tmpl"
         return newRV_inc ((SV *) ice);
     }
     UNDEF;
@@ -2410,7 +2412,7 @@ static SV * perl_png_get_cHRM (perl_libpng_t * png)
 static void perl_png_set_cHRM (perl_libpng_t * png, HV * cHRM)
 {
     SV ** key_sv_ptr;
-#line 2413 "perl-libpng.c"
+#line 2415 "perl-libpng.c"
     double white_x = 0.0;
     double white_y = 0.0;
     double red_x = 0.0;
@@ -2451,9 +2453,9 @@ static void perl_png_set_cHRM (perl_libpng_t * png, HV * cHRM)
     if (key_sv_ptr) {
         blue_y = SvNV (* key_sv_ptr);
     }
-#line 2348 "perl-libpng.c.tmpl"
+#line 2350 "perl-libpng.c.tmpl"
     png_set_cHRM (pngi, white_x, white_y, red_x, red_y, green_x, green_y, blue_x, blue_y);
-#line 2351 "perl-libpng.c.tmpl"
+#line 2353 "perl-libpng.c.tmpl"
 }
 
 static void perl_png_set_transforms (perl_libpng_t * png, int transforms)
@@ -2483,7 +2485,7 @@ static void perl_png_copy_row_pointers (perl_libpng_t * png, SV * row_pointers)
     png_set_rows (pngi, png->row_pointers);
 }
 
-#line 2486 "perl-libpng.c"
+#line 2488 "perl-libpng.c"
 
 static int
 perl_png_get_image_width (perl_libpng_t * png)
@@ -2497,7 +2499,7 @@ perl_png_get_image_height (perl_libpng_t * png)
     return png_get_image_height (pngi);
 }
 
-#line 2389 "perl-libpng.c.tmpl"
+#line 2391 "perl-libpng.c.tmpl"
 
 /*
 static void

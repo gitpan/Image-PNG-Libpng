@@ -1,3 +1,8 @@
+0.33 2014-02-21
+
+* New functions "set_row_pointers" and "set_image_data" for access to
+  low-level PNG structures.
+
 0.32 2014-02-14
 
 * Changes to a C file to compile successfully on SunOS/Solaris

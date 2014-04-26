@@ -96,7 +96,7 @@ our %EXPORT_TAGS = (
 );
 
 require XSLoader;
-our $VERSION = '0.36';
+our $VERSION = '0.37';
 
 XSLoader::load('Image::PNG::Libpng', $VERSION);
 

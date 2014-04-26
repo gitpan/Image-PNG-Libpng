@@ -33,7 +33,7 @@ This example is in F<examples/synopsis.pl> in the distribution.
 
 =begin html
 
-(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.36/examples/synopsis.pl">Download  "synopsis.pl" here</a>.)
+(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.37/examples/synopsis.pl">Download  "synopsis.pl" here</a>.)
 
 =end html
 
@@ -124,7 +124,7 @@ This example is in F<examples/get-www-png.pl> in the distribution.
 
 =begin html
 
-(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.36/examples/get-www-png.pl">Download  "get-www-png.pl" here</a>.)
+(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.37/examples/get-www-png.pl">Download  "get-www-png.pl" here</a>.)
 
 =end html
 
@@ -165,7 +165,7 @@ This example is in F<examples/png-cgi.pl> in the distribution.
 
 =begin html
 
-(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.36/examples/png-cgi.pl">Download  "png-cgi.pl" here</a>.)
+(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.37/examples/png-cgi.pl">Download  "png-cgi.pl" here</a>.)
 
 =end html
 
@@ -472,53 +472,8 @@ This function corresponds to C<png_sig_cmp>, with default arguments of
     }
 
 This function returns a hash with a key for each possible chunk which
-may or may not be valid. The chunks which you can test for are
-
-=over
-
-=item bKGD
-
-=item cHRM
-
-=item gAMA
-
-=item hIST
-
-=item hIST
-
-=item iCCP
-
-=item IDAT
-
-=item IHDR
-
-=item iTXt
-
-=item oFFs
-
-=item pCAL
-
-=item pHYs
-
-=item PLTE
-
-=item sBIT
-
-=item sCAL
-
-=item sPLT
-
-=item sRGB
-
-=item tEXt
-
-=item tIME
-
-=item tRNS
-
-=item zTXt
-
-=back
+may or may not be valid. The chunks which you can test for are 
+L</bKGD>, L</cHRM>, L</gAMA>, L</hIST>, L</hIST>, L</iCCP>, L</IDAT>, L</IHDR>, L</iTXt>, L</oFFs>, L</pCAL>, L</pHYs>, L</PLTE>, L</sBIT>, L</sCAL>, L</sPLT>, L</sRGB>, L</tEXt>, L</tIME>, L</tRNS>, and L</zTXt>.
 
 Whereas L</libpng_supports> tells you whether the installed libpng on
 your system supports various chunks, this tells you whether the chunks
@@ -548,28 +503,28 @@ The hash reference contains the following fields:
 
 =item width
 
-The width of the image in pixels. This cannot be zero, negative, or omitted.
+The width of the image in pixels.
 
 
 =item height
 
-The height of the image in pixels. This cannot be zero, negative, or omitted.
+The height of the image in pixels. 
 
 
 =item bit_depth
 
 The bit depth of the image (the number of bits used for each colour in
-a pixel).  This cannot be omitted.
+a pixel).
 This can take the values 1, 2, 4, 8, 16.
 
 =item color_type
 
-The colour type. This cannot be omitted.
+The colour type.
 This can take the values PNG_COLOR_TYPE_GRAY, PNG_COLOR_TYPE_GRAY_ALPHA, PNG_COLOR_TYPE_PALETTE, PNG_COLOR_TYPE_RGB, PNG_COLOR_TYPE_RGB_ALPHA.
 
 =item interlace_method
 
-The method of interlacing. If this is omitted, it's set to PNG_INTERLACE_NONE.
+The method of interlacing.
 This can take the values PNG_INTERLACE_NONE, PNG_INTERLACE_ADAM7.
 
 
@@ -586,8 +541,10 @@ So, for example, to get the width and height of an image,
 
 B<Correspondence to libpng:> 
 
-This function corresponds to C<png_get_IHDR>, with a single Perl hash reference
-used instead of the several pointers to integers used in libpng.
+This function corresponds to C<png_get_IHDR>, with a single Perl hash reference used
+instead of the several pointers to integers used in libpng. It does
+not return the fields C<filter_method> and C<compression_method>,
+which are always 0.
 
 =head2 set_IHDR
 
@@ -605,29 +562,29 @@ L</create_write_struct>. The second argument is a hash with the following values
 
 =item width
 
-The width of the image in pixels. This cannot be zero, negative, or omitted.
-
+The width of the image in pixels.
+ This cannot be zero, negative, or omitted. 
 
 =item height
 
-The height of the image in pixels. This cannot be zero, negative, or omitted.
-
+The height of the image in pixels. 
+ This cannot be zero, negative, or omitted. 
 
 =item bit_depth
 
 The bit depth of the image (the number of bits used for each colour in
-a pixel).  This cannot be omitted.
-This can have the values 1, 2, 4, 8, 16.
+a pixel).
+ This cannot be omitted. This can have the values 1, 2, 4, 8, 16.
 
 =item color_type
 
-The colour type. This cannot be omitted.
-This can have the values PNG_COLOR_TYPE_GRAY, PNG_COLOR_TYPE_GRAY_ALPHA, PNG_COLOR_TYPE_PALETTE, PNG_COLOR_TYPE_RGB, PNG_COLOR_TYPE_RGB_ALPHA.
+The colour type.
+ This cannot be omitted. This can have the values PNG_COLOR_TYPE_GRAY, PNG_COLOR_TYPE_GRAY_ALPHA, PNG_COLOR_TYPE_PALETTE, PNG_COLOR_TYPE_RGB, PNG_COLOR_TYPE_RGB_ALPHA.
 
 =item interlace_method
 
-The method of interlacing. If this is omitted, it's set to PNG_INTERLACE_NONE.
-This can have the values PNG_INTERLACE_NONE, PNG_INTERLACE_ADAM7.
+The method of interlacing.
+ If this is omitted, it's set to PNG_INTERLACE_NONE. This can have the values PNG_INTERLACE_NONE, PNG_INTERLACE_ADAM7.
 
 
 
@@ -643,7 +600,7 @@ B<Correspondence to libpng:>
 This function corresponds to C<png_set_IHDR>, with a single Perl hash reference
 used instead of the seven integers. The variables
 C<compression_method>, C<filter_method>, 
-in C<png_set_IHDR> can only take one possible value, so the routine
+in C<png_set_IHDR> can only take one possible value, 0, so the routine
 ignores them. See L<Unused arguments omitted>.
 
 =head2 get_color_type
@@ -677,7 +634,7 @@ This example is in F<examples/color-type-name.pl> in the distribution.
 
 =begin html
 
-(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.36/examples/color-type-name.pl">Download  "color-type-name.pl" here</a>.)
+(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.37/examples/color-type-name.pl">Download  "color-type-name.pl" here</a>.)
 
 =end html
 
@@ -2116,7 +2073,7 @@ instances of unevaluated arguments, which have all been eliminated
 from this module.
 
 If you are interested in exactly which libpng arguments are omitted,
-you can find each instance L<in the file C<perl-libpng.c> in the top directory of the distribution|http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.36/perl-libpng.c> in the macro
+you can find each instance L<in the file C<perl-libpng.c> in the top directory of the distribution|http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.37/perl-libpng.c> in the macro
 C<UNUSED_ZERO_ARG>.
 
 =head2 Function return values are used to return values

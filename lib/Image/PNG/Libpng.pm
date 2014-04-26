@@ -95,7 +95,7 @@ our %EXPORT_TAGS = (
 );
 
 require XSLoader;
-our $VERSION = '0.34';
+our $VERSION = '0.35';
 
 XSLoader::load('Image::PNG::Libpng', $VERSION);
 
@@ -119,6 +119,9 @@ sub read_png_file
     my $png = create_read_struct ();
     if ($options{transforms}) {
 	$png->set_transforms ($options{transforms});
+    }
+    if ($options{verbosity}) {
+	$png->set_verbosity ($options{verbosity});
     }
     open my $in, "<:raw", $file_name
         or croak "Cannot open '$file_name' for reading: $!";
@@ -219,17 +222,26 @@ sub copy_png
     if ($options{verbosity}) {
 	$opng->set_verbosity ($options{verbosity});
     }
+    my $strip = $options{strip};
+    my $strip_all;
+    if ($strip) {
+	if ($strip eq 'all') {
+	    $strip_all = 1;
+	}
+    }
     my $valid = $png->get_valid ();
     $opng->set_IHDR ($png->get_IHDR ());
+    my $rows = $png->get_rows ();
+    $opng->set_rows ($rows);
+
     for my $chunk (keys %$valid) {
-	if ($chunk eq 'IHDR') {
+	if ($chunk eq 'IHDR' || $chunk eq 'IDAT') {
 	    next;
 	}
-	if ($chunk eq 'IDAT') {
-	    my $rows = get_rows ($png);
-	    $opng->set_rows ($rows);
-	}
 	elsif ($valid->{$chunk}) {
+	    if ($strip_all) {
+		next;
+	    }
 	    $opng->set_chunk ($chunk, $png->get_chunk ($chunk));
 	}
     }

@@ -534,7 +534,7 @@ SV * perl_png_get_tRNS (Png)
 
 void perl_png_set_tRNS (Png, tRNS)
         Image::PNG::Libpng Png
-        HV * tRNS
+        SV * tRNS
         CODE:
         perl_png_set_tRNS (Png, tRNS);
         OUTPUT:

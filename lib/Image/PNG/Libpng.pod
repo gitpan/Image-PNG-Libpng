@@ -33,7 +33,7 @@ This example is in F<examples/synopsis.pl> in the distribution.
 
 =begin html
 
-(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.35/examples/synopsis.pl">Download  "synopsis.pl" here</a>.)
+(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.36/examples/synopsis.pl">Download  "synopsis.pl" here</a>.)
 
 =end html
 
@@ -96,7 +96,7 @@ L</create_write_struct>, so L</read_png_file> followed by a call to
 this does not work.
 
 The optional argument to L</write_png> can be specified using
-L</set_transforms>.
+L</set_tansforms>.
 
 =head2 read_from_scalar
 
@@ -124,7 +124,7 @@ This example is in F<examples/get-www-png.pl> in the distribution.
 
 =begin html
 
-(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.35/examples/get-www-png.pl">Download  "get-www-png.pl" here</a>.)
+(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.36/examples/get-www-png.pl">Download  "get-www-png.pl" here</a>.)
 
 =end html
 
@@ -165,7 +165,7 @@ This example is in F<examples/png-cgi.pl> in the distribution.
 
 =begin html
 
-(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.35/examples/png-cgi.pl">Download  "png-cgi.pl" here</a>.)
+(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.36/examples/png-cgi.pl">Download  "png-cgi.pl" here</a>.)
 
 =end html
 
@@ -677,7 +677,7 @@ This example is in F<examples/color-type-name.pl> in the distribution.
 
 =begin html
 
-(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.35/examples/color-type-name.pl">Download  "color-type-name.pl" here</a>.)
+(<a href="http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.36/examples/color-type-name.pl">Download  "color-type-name.pl" here</a>.)
 
 =end html
 
@@ -1586,8 +1586,6 @@ See L<http://www.w3.org/TR/PNG/#11sBIT>  of the PNG specification.
 
     my $sbit = $png->get_sBIT ();
 
-This is implemented but untested.
-
 
 
 B<Correspondence to libpng:> 
@@ -1597,8 +1595,6 @@ This function corresponds to C<png_get_sBIT>
 =head3 set_sBIT
 
     $png->set_sBIT ({red => 1, blue => 2, green => 3});
-
-This is implemented but untested.
 
 
 
@@ -1845,22 +1841,27 @@ The entries of the palette. This is an array reference containing hash reference
 The field C<nentries> which is returned by L</get_sPLT> does not need
 to be specified, it is calculated from the length of C<entries>.
 
-=head1 UNIMPLEMENTED CHUNKS
-
-These chunks have skeleton routines but the actual reading and writing
-code is not yet implemented.
-
 =head2 tRNS
 
 See L<http://www.w3.org/TR/PNG/#11tRNS>  of the PNG specification.
 
 =head3 get_tRNS
 
-Not implemented.
+    my $trns = $png->get_tRNS ();
+
+Get the C<tRNS> chunk. If the image is a palette type, this is an
+array reference. If the image is a non-palette type, this is a hash
+containing values for the keys red, green, blue, and gray.
 
 =head3 set_tRNS
 
-Not implemented.
+    $png->set_tRNS ($trns);
+
+Set the C<tRNS> chunk. If the image is a palette type, C<$trns> is a
+reference to an array of positive or zero values between 0 and 255 of
+the same size as the palette. It must not contain more than 256
+values. If the image is not a palette type, C<$trns> is a hash
+reference containing values for the keys red, green, blue and gray.
 
 =head1 META FUNCTIONS
 
@@ -1969,6 +1970,16 @@ B<Correspondence to libpng:>
 
 This function corresponds to C<png_set_gray_to_rgb>
 
+=head2 set_rgb_to_gray_fixed
+
+    $png->set_gray_to_rgb ();
+
+
+
+B<Correspondence to libpng:> 
+
+This function corresponds to C<png_set_gray_to_rgb_fixed>
+
 =head2 get_tRNS_palette
 
     $png->get_tRNS_palette ();
@@ -1980,6 +1991,18 @@ This is not a libpng-equivalent function.
     $png->set_PLTE_pointer ();
 
 This is not a libpng-equivalent function.
+
+=head1 TESTING FUNCTIONS
+
+=head2 image_data_diff
+
+    my $diff = image_data_diff ('a.png', 'b.png');
+
+This returns the undefined value if the image data in F<a.png> is the
+same as the image data in F<b.png>. If the image data is different, it
+prints a message describing the first difference found, for example
+the height is different, or row 0 of the image data is different,
+etc. This function is used in testing this module.
 
 =head1 ACCESS FUNCTIONS
 
@@ -2093,7 +2116,7 @@ instances of unevaluated arguments, which have all been eliminated
 from this module.
 
 If you are interested in exactly which libpng arguments are omitted,
-you can find each instance L<in the file C<perl-libpng.c> in the top directory of the distribution|http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.35/perl-libpng.c> in the macro
+you can find each instance L<in the file C<perl-libpng.c> in the top directory of the distribution|http://cpansearch.perl.org/src/BKB/Image-PNG-Libpng-0.36/perl-libpng.c> in the macro
 C<UNUSED_ZERO_ARG>.
 
 =head2 Function return values are used to return values

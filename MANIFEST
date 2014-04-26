@@ -25,6 +25,7 @@ t/bKGD.t
 t/bogus.t
 t/cHRM.t
 t/Const.t
+t/copy-all-png.t
 t/functions.t
 t/gAMA.t
 t/get-internals.t
@@ -212,6 +213,7 @@ t/make-tEXT.pl
 t/pHYs.t
 t/PLTE.t
 t/saru-fs8.png
+t/sBIT.t
 t/sCAL.t
 t/set-text.t
 t/sPLT.t

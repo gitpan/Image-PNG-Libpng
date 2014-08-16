@@ -3,15 +3,15 @@ abstract: 'Perl interface to libpng'
 author:
   - 'Ben Bullock <bkb@cpan.org>'
 build_requires:
-  ExtUtils::MakeMaker: '0'
+  ExtUtils::MakeMaker: 0
 configure_requires:
-  ExtUtils::MakeMaker: '0'
+  ExtUtils::MakeMaker: 0
 dynamic_config: 1
-generated_by: 'ExtUtils::MakeMaker version 6.96, CPAN::Meta::Converter version 2.133380'
+generated_by: 'ExtUtils::MakeMaker version 6.98, CPAN::Meta::Converter version 2.120921'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
-  version: '1.4'
+  version: 1.4
 name: Image-PNG-Libpng
 no_index:
   directory:
@@ -20,9 +20,9 @@ no_index:
     - tmpl
     - build
 requires:
-  perl: '5.008001'
+  perl: 5.008001
 resources:
-  MailingList: http://groups.google.com/group/perlimagepng
   bugtracker: https://github.com/benkasminbullock/image-png-libpng/issues
   repository: https://github.com/benkasminbullock/image-png-libpng
-version: '0.37'
+  x_MailingList: http://groups.google.com/group/perlimagepng
+version: 0.38

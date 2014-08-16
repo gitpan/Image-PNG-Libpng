@@ -224,5 +224,6 @@ t/tIME.t
 t/tRNS.t
 t/user-limits.t
 typemap
+unt/unknown-chunk.t
 META.yml                                 Module YAML meta-data (added by MakeMaker)
 META.json                                Module JSON meta-data (added by MakeMaker)

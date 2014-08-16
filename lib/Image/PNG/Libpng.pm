@@ -1,3 +1,4 @@
+
 # This file is just a list of exports and documentation. The source
 # code for this file is in Libpng.xs in the top directory.
 
@@ -96,7 +97,7 @@ our %EXPORT_TAGS = (
 );
 
 require XSLoader;
-our $VERSION = '0.37';
+our $VERSION = '0.38';
 
 XSLoader::load('Image::PNG::Libpng', $VERSION);
 

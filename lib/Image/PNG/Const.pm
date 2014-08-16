@@ -1,5 +1,5 @@
 package Image::PNG::Const;
-our $VERSION = '0.37';
+our $VERSION = '0.38';
 
 require Exporter;
 @ISA = qw(Exporter);
@@ -167,6 +167,12 @@ PNG_IO_CHUNK_CRC
 PNG_IO_MASK_OP
 PNG_IO_MASK_LOC
 PNG_INTERLACE_ADAM7_PASSES
+PNG_ARM_NEON
+PNG_OPTION_NEXT
+PNG_OPTION_UNSET
+PNG_OPTION_INVALID
+PNG_OPTION_OFF
+PNG_OPTION_ON
 /;
 
 %EXPORT_TAGS = ('all' => \@EXPORT_OK);
@@ -343,6 +349,12 @@ use constant {
     PNG_IO_MASK_OP => 0x000f,
     PNG_IO_MASK_LOC => 0x00f0,
     PNG_INTERLACE_ADAM7_PASSES => 7,
+    PNG_ARM_NEON => 0,
+    PNG_OPTION_NEXT => 2,
+    PNG_OPTION_UNSET => 0,
+    PNG_OPTION_INVALID => 1,
+    PNG_OPTION_OFF => 2,
+    PNG_OPTION_ON => 3,
 };
 
 =head1 NAME
@@ -1018,6 +1030,30 @@ PNG_IO_MASK_LOC has value 0x00f0.
 =item PNG_INTERLACE_ADAM7_PASSES
 
 PNG_INTERLACE_ADAM7_PASSES has value 7.
+
+=item PNG_ARM_NEON
+
+PNG_ARM_NEON has value 0.
+
+=item PNG_OPTION_NEXT
+
+PNG_OPTION_NEXT has value 2.
+
+=item PNG_OPTION_UNSET
+
+PNG_OPTION_UNSET has value 0.
+
+=item PNG_OPTION_INVALID
+
+PNG_OPTION_INVALID has value 1.
+
+=item PNG_OPTION_OFF
+
+PNG_OPTION_OFF has value 2.
+
+=item PNG_OPTION_ON
+
+PNG_OPTION_ON has value 3.
 
 =back
 

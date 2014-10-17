@@ -38,7 +38,7 @@
          }
       }
    },
-   "release_status" : "stable",
+   "release_status" : "testing",
    "resources" : {
       "bugtracker" : {
          "web" : "https://github.com/benkasminbullock/image-png-libpng/issues"
@@ -48,5 +48,5 @@
       },
       "x_MailingList" : "http://groups.google.com/group/perlimagepng"
    },
-   "version" : "0.38"
+   "version" : "0.38_01"
 }

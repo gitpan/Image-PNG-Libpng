@@ -13,7 +13,7 @@ check_lib_or_exit (lib => 'png', header => 'png.h');
 
 WriteMakefile (
     NAME         => 'Image::PNG::Libpng',
-    VERSION      => '0.38',
+    VERSION      => '0.38_01',
     ABSTRACT     => 'Perl interface to libpng',
     OBJECT       => 'Libpng.o',
     LIBS         => '-lpng',
